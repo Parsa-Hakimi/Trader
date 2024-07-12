@@ -2,9 +2,11 @@ import json
 
 import websocket
 
+from bitpin_proxy import bitpin_proxy
+
 BITPIN_WS_ADDR = 'wss://ws.bitpin.ir'
 
-MARKET_MAPPING= {
+MARKET_MAPPING = {
     ('USDT', 'IRT'): 5,
     ('NOT', 'IRT'): 772,
     ('NOT', 'USDT'): 773,
@@ -16,6 +18,7 @@ MARKET_MAPPING= {
 class MarketRepository:
     def __init__(self):
         self.data = {}
+        self.market_prices = {}
         self.callbacks = []
 
         self.ws = websocket.WebSocketApp(BITPIN_WS_ADDR,
@@ -28,6 +31,18 @@ class MarketRepository:
         self.data = bitpin_resp
         for cb in self.callbacks:
             cb(self)
+
+    def update_by_order_list(self):
+        for _, market_id in MARKET_MAPPING.items():
+            res = bitpin_proxy.get_open_orders(market_id, 'buy')
+            sorted_bids = sorted(res['orders'], key=lambda order: float(order['price']), reverse=True)
+            res = bitpin_proxy.get_open_orders(market_id, 'sell')
+            sorted_asks = sorted(res['orders'], key=lambda order: float(order['price']))
+
+            self.market_prices[market_id] = {
+                'best_bid': sorted_bids[0],
+                'best_ask': sorted_asks[0],
+            }
 
     def add_callback(self, f):
         self.callbacks.append(f)
