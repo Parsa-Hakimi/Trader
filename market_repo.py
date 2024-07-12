@@ -65,6 +65,20 @@ class MarketRepository:
 
         return float(self.data[market_id].get('price'))
 
+    def get_market_ask(self, base, quote):
+        market_id = MARKET_MAPPING.get((base, quote))
+        if market_id not in self.market_prices:
+            market_id = str(market_id)
+
+        return self.market_prices[market_id].get('best_ask')
+
+    def get_market_bid(self, base, quote):
+        market_id = MARKET_MAPPING.get((base, quote))
+        if market_id not in self.market_prices:
+            market_id = str(market_id)
+
+        return self.market_prices[market_id].get('best_bid')
+
     def run(self):
         self.ws.run_forever(ping_interval=10, ping_timeout=9, ping_payload='{ "message" : "PING"}')
 
