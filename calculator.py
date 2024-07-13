@@ -40,14 +40,34 @@ class Triangle:
             amount = min(float(b1.get('remain')), float(a2.get('remain')))
             profit = profit_per_unit * amount
 
-            return (self.token2, 'IRT', profit, profit_per_unit, amount)
+            return {"base":self.token2,
+                    "main_market_optimal_position":"sell",
+                   "main_market_order_amount": amount,
+                    "main_market_price": float(b1.get('price')),
+                  "secondary_market_optimal_position":"buy",
+                  "secondary_market_order_amount": amount,
+                    "secondary_market_price":float(a2.get('price')),
+                  "secondary_quote_optimal_position":"buy",
+                 "secondary_quote_order_amount": amount/float(a2.get('price')),
+                 "secondary_quote_price": float(a3.get('price')),
+                 "expected_profit": profit}
 
         elif -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price')) > 0:
             profit_per_unit = -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price'))
             amount = min(float(a1.get('remain')), float(b2.get('remain')))
             profit = profit_per_unit * amount
 
-            return (self.token2, 'USDT', profit, profit_per_unit, amount)
+            return {"base":self.token2,
+                    "main_market_optimal_position":"buy",
+                    "main_market_order_amount": amount,
+                    "main_market_price": float(a1.get('price')),
+                 "secondary_market_optimal_position":"sell",
+                  "secondary_market_order_amount": amount,
+                  "secondary_market_price":float(b2.get('price')),
+                  "secondary_quote_optimal_position":"sell",
+                  "secondary_quote_order_amount": amount/float(a2.get('price')),
+                 "secondary_quote_price": float(b3.get('price')),
+                 "expected_profit": profit}
 
 
 class TriangleCalculator:
@@ -65,6 +85,6 @@ class TriangleCalculator:
             res = triangle.get_profit_ask_bid(market_repo)
 
             if res is not None:
-                writer.writerow(res)
+                writer.writerow(res.values())
 
         self.log_file.flush()
