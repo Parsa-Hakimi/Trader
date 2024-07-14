@@ -1,5 +1,6 @@
 import json
 
+import rel
 import websocket
 
 from bitpin_proxy import bitpin_proxy
@@ -12,16 +13,14 @@ MARKET_MAPPING = {
     ('NOT', 'USDT'): 773,
     ('METIS', 'IRT'): 365,
     ('METIS', 'USDT'): 366,
-('BTC','IRT'):1,
-('BTC','USDT'):2,
-('ETH','USDT'):3,
-('ETH','IRT'):4,
-('TON','IRT'):355,
-('TON','USDT'):356,
-('DOGE','IRT'):62,
-('DOGE','USDT'):63,
-
-
+    ('BTC', 'IRT'): 1,
+    ('BTC', 'USDT'): 2,
+    ('ETH', 'USDT'): 3,
+    ('ETH', 'IRT'): 4,
+    ('TON', 'IRT'): 355,
+    ('TON', 'USDT'): 356,
+    ('DOGE', 'IRT'): 62,
+    ('DOGE', 'USDT'): 63,
 }
 
 
@@ -90,7 +89,14 @@ class MarketRepository:
         return self.market_prices[market_id].get('best_bid')
 
     def run(self):
-        self.ws.run_forever(ping_interval=10, ping_timeout=9, ping_payload='{ "message" : "PING"}')
+        self.ws.run_forever(
+            ping_interval=10,
+            ping_timeout=9,
+            ping_payload='{ "message" : "PING"}',
+            dispatcher=rel,
+            reconnect=5)
+        rel.signal(2, rel.abort)
+        rel.dispatch()
 
     def _on_message(self, ws, message):
         print(f"Received message: {message}")
