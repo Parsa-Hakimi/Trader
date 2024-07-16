@@ -7,4 +7,7 @@ if __name__ == '__main__':
     market_repo.add_callback(MarketRepository.update_by_order_list)
     market_repo.add_callback(tc.calculate)
     while True:
-        market_repo.run()
+        try:
+            market_repo.run()
+        except:
+            pass
