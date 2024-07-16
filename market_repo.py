@@ -91,7 +91,6 @@ class MarketRepository:
     def run(self):
         self.ws.run_forever(
             ping_interval=10,
-            ping_timeout=9,
             ping_payload='{ "message" : "PING"}',
             dispatcher=rel,
             reconnect=5)
