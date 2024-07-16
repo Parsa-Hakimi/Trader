@@ -2,10 +2,13 @@ import os
 from typing import Literal
 
 import requests
+import logging
 
 BITPIN_URL = 'https://api.bitpin.ir'
 BITPIN_API_KEY = os.environ.get('BITPIN_API_KEY')
 BITPIN_SECRET_KEY = os.environ.get('BITPIN_SECRET_KEY')
+
+logger = logging.getLogger(__name__)
 
 
 class BitpinProxy:
@@ -15,6 +18,7 @@ class BitpinProxy:
         self.refresh_token = ''
 
     def _send_request(self, path, method='get', body=None, authenticated=False):
+        logger.info("Sending request. path=(%s)", path)
         url = f'{self.base_url}{path}'
 
         request_method = getattr(requests, method.lower())
@@ -26,7 +30,9 @@ class BitpinProxy:
 
         resp = request_method(url, json=body)
         if resp.status_code in [401, 403]:  # TODO: test to see if Bitpin return correct status codes
+            logger.info("Request failed. Retrying...")
             self.refresh()
+            headers['Authentication'] = f'Bearer {self.access_token}'
             resp = request_method(url, json=body, headers=headers)
 
         return resp
@@ -39,6 +45,7 @@ class BitpinProxy:
                 self.login()
 
     def login(self):
+        logger.info("Calling login.")
         resp_body = self._send_request('/v1/usr/api/login/', method='post', body={
             'api_key': BITPIN_API_KEY,
             'secret_key': BITPIN_SECRET_KEY,
@@ -48,11 +55,13 @@ class BitpinProxy:
         self.refresh_token = resp_body['refresh']
 
     def refresh(self):
+        logger.info("Calling refresh.")
         resp = self._send_request('/v1/usr/refresh_token/', method='post', body={
             'refresh': self.refresh_token,
         })
 
         if resp.status_code >= 300:
+            logger.info(f"Refresh failed({resp.status_code}). Logging in again.")
             self.login()
         else:
             self.access_token = resp.json()['access']
@@ -70,6 +79,7 @@ class BitpinProxy:
             position: Literal['buy', 'sell'],
             mode='limit'
     ):
+        logger.info("Posting order")
         if mode != 'limit':
             raise NotImplementedError
 
