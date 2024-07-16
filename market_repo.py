@@ -1,4 +1,6 @@
 import json
+from collections import defaultdict
+from typing import Tuple
 
 import rel
 import websocket
@@ -23,12 +25,22 @@ MARKET_MAPPING = {
     ('DOGE', 'USDT'): 63,
 }
 
+
+def get_market_base_and_quote(market_id: int) -> Tuple[str, str] | Tuple[None, None]:
+    try:
+        market = next(filter(lambda m: m[1] == market_id, MARKET_MAPPING.items()))
+        return market[0]
+    except StopIteration:
+        return None, None
+
+
 websocket.setdefaulttimeout(20)
+
 
 class MarketRepository:
     def __init__(self):
         self.data = {}
-        self.market_prices = {}
+        self.market_prices = defaultdict(dict)
         self.callbacks = []
 
         self.ws = websocket.WebSocketApp(BITPIN_WS_ADDR,
@@ -37,7 +49,9 @@ class MarketRepository:
                                          on_close=self._on_close)
         self.ws.on_open = self._on_open
 
-    def update(self, bitpin_resp: dict):
+        # self.update_by_order_list()
+
+    def handle_currency_price_info_update_event(self, bitpin_resp: dict):
         self.data = bitpin_resp
         for cb in self.callbacks:
             cb(self)
@@ -92,24 +106,45 @@ class MarketRepository:
     def run(self):
         self.ws.run_forever(
             ping_interval=10,
-            ping_payload='{ "message" : "PING"}',
-            dispatcher=rel,
-            reconnect=5)
-        rel.signal(2, rel.abort)
-        rel.dispatch()
+            ping_payload='{ "message" : "PING"}'
+        )
 
     def _on_message(self, ws, message):
-        print(f"Received message: {message}")
+        print(f"Received message: {message[:50]}")
         data = json.loads(message)
-        if data.get("event") == 'currency_price_info_update':
-            self.update(json.loads(message))
+        match data.get("event"):
+            case "market_update":
+                self.handle_market_update_event(data)
+            # case "currency_price_info_update":
+            #     self.handle_currency_price_info_update_event(data)
 
-    def _on_error(self, ws, error):
+    def _on_error(self, ws, error: Exception):
         print(f"Encountered error: {error}")
+        import traceback
+        traceback.print_exception(error)
 
     def _on_close(self, ws, close_status_code, close_msg):
         print("Connection closed")
 
     def _on_open(self, ws):
         print("Connection opened")
-        self.ws.send('{"method":"sub_to_price_info"}')
+        self.ws.send(f'{{"method":"sub_to_market_list", "ids":[{",".join(str(i) for i in MARKET_MAPPING.values())}]}}')
+
+    def handle_market_update_event(self, data):
+        market_id = int(data['market']['id'])
+        sorted_bids = sorted(data['buy'], key=lambda order: float(order['price']), reverse=True)
+        sorted_asks = sorted(data['sell'], key=lambda order: float(order['price']))
+        if self.market_prices.get(market_id, {}).get('best_bid') != sorted_bids[0]:
+            print(f'new best bid: \n{self.market_prices.get(market_id, {}).get("best_bid")} \n{sorted_bids[0]}')
+            self.market_prices[market_id]['best_bid'] = sorted_bids[0]
+        if self.market_prices.get(market_id, {}).get('best_ask') != sorted_asks[0]:
+            print(f'new best ask: \n{self.market_prices.get(market_id, {}).get("best_ask")} \n{sorted_asks[0]}')
+            self.market_prices[market_id]['best_ask'] = sorted_asks[0]
+
+        # print(f'market={data["market"]["code"]} best_bid={sorted_bids[0]} best_ask={sorted_asks[0]}')
+
+        self._call_callbacks(market_id)
+
+    def _call_callbacks(self, market_id: int):
+        for cb in self.callbacks:
+            cb(self, market_id=market_id)

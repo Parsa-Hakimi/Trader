@@ -8,7 +8,6 @@ BITPIN_URL = 'https://api.bitpin.ir'
 BITPIN_API_KEY = os.environ.get('BITPIN_API_KEY')
 BITPIN_SECRET_KEY = os.environ.get('BITPIN_SECRET_KEY')
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -30,7 +29,7 @@ class BitpinProxy:
             headers['Authorization'] = f'Bearer {self.access_token}'
 
         resp = request_method(url, json=body, headers=headers)
-        if resp.status_code in [401, 403]:  # TODO: test to see if Bitpin return correct status codes
+        if resp.status_code in [401, 403]:
             logger.info("Request failed. Retrying...")
             self.refresh()
             headers['Authentication'] = f'Bearer {self.access_token}'
