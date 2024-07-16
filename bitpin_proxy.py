@@ -27,7 +27,7 @@ class BitpinProxy:
         headers = {}
         if authenticated:
             self._ensure_access()
-            headers['Authentication'] = f'Bearer {self.access_token}'
+            headers['Authorization'] = f'Bearer {self.access_token}'
 
         resp = request_method(url, json=body, headers=headers)
         if resp.status_code in [401, 403]:  # TODO: test to see if Bitpin return correct status codes
