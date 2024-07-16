@@ -1,13 +1,20 @@
 import csv
+import logging
+from typing import List
 
-from market_repo import MarketRepository
+from market_repo import MarketRepository, get_market_base_and_quote
 
+logger = logging.getLogger(__name__)
 
 class Triangle:
     def __init__(self, main_token, token1, token2):
         self.main_token = main_token
         self.token1 = token1
         self.token2 = token2
+
+    @property
+    def tokens(self) -> List[str]:
+        return [self.main_token, self.token1, self.token2]
 
     def get_profit_market(self, market_repo: MarketRepository):
         p1 = market_repo.get_price(self.main_token, self.token1)
@@ -82,13 +89,23 @@ class TriangleCalculator:
             Triangle('IRT', 'USDT', 'ETH'),
         ]
 
-    def calculate(self, market_repo: MarketRepository):
-        print("CALCING")
+    def calculate(self, market_repo: MarketRepository, **kwargs):
+        logger.info("Calculating triangles")
         writer = csv.writer(self.log_file)
         for triangle in self.triangles:
+            logger.info("Checking triangle (%s)", " -> ".join(triangle.tokens))
+            market_id = kwargs.get('market_id')
+            if market_id:
+                market_sides = get_market_base_and_quote(market_id)
+                logger.info(market_sides)
+                if market_sides[0] is not None:
+                    if market_sides[0] not in triangle.tokens or market_sides[1] not in triangle.tokens:
+                        logger.info("Sides not in market update, skipping.")
+                        continue
             res = triangle.get_profit_ask_bid(market_repo)
 
             if res is not None:
+                logger.info("Logging profitable trade: %s", str(res))
                 writer.writerow(res.values())
 
         self.log_file.flush()
