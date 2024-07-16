@@ -23,6 +23,7 @@ MARKET_MAPPING = {
     ('DOGE', 'USDT'): 63,
 }
 
+websocket.setdefaulttimeout(20)
 
 class MarketRepository:
     def __init__(self):
