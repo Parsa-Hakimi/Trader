@@ -27,7 +27,7 @@ class BitpinProxy:
         resp = request_method(url, json=body)
         if resp.status_code in [401, 403]:  # TODO: test to see if Bitpin return correct status codes
             self.refresh()
-            resp = request_method(url, json=body)
+            resp = request_method(url, json=body, headers=headers)
 
         return resp
 
