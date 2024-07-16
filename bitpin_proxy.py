@@ -72,6 +72,9 @@ class BitpinProxy:
 
         return self._send_request(url_tmpl).json()
 
+    def get_my_active_orders(self):
+        return self._send_request('/v1/odr/orders/?state=active', authenticated=True).json()
+
     def post_order(
             self,
             market_id: int,
