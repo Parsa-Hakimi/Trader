@@ -1,5 +1,6 @@
 import logging
 import uuid
+from collections import defaultdict
 from typing import List
 
 from bitpin_proxy import bitpin_proxy
@@ -22,13 +23,14 @@ def _get_order_set_base_tokens(order_set):
 class TraderAgent:
     def __init__(self):
         self.open_orders = []
-        self.wallet = {}
+        self.wallet = defaultdict(float)
 
         self.update_orders_and_wallet()
 
     def update_orders_and_wallet(self):
         self.open_orders = bitpin_proxy.get_my_open_orders()
-        self.wallet = bitpin_proxy.get_wallet_info()
+        self.wallet.clear()
+        self.wallet.update(bitpin_proxy.get_wallet_info())
 
         logger.info("Open orders: %s", str(self.open_orders))
         logger.info("Wallet: %s", str(self.wallet))
