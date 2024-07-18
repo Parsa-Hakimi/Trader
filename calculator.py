@@ -88,10 +88,10 @@ class TriangleCalculator:
         self.log_file = open('log_file.csv', mode='a')
         self.triangles = [
             Triangle('IRT', 'USDT', 'NOT'),
-            Triangle('IRT', 'USDT', 'DOGE'),
-            Triangle('IRT', 'USDT', 'TON'),
+            # Triangle('IRT', 'USDT', 'DOGE'),
+            # Triangle('IRT', 'USDT', 'TON'),
             Triangle('IRT', 'USDT', 'BTC'),
-            Triangle('IRT', 'USDT', 'ETH'),
+            # Triangle('IRT', 'USDT', 'ETH'),
         ]
 
     def calculate(self, market_repo: MarketRepository, **kwargs):
@@ -102,7 +102,6 @@ class TriangleCalculator:
             market_id = kwargs.get('market_id')
             if market_id:
                 market_sides = get_market_base_and_quote(market_id)
-                logger.info(market_sides)
                 if market_sides[0] is not None:
                     if market_sides[0] not in triangle.tokens or market_sides[1] not in triangle.tokens:
                         logger.info("Sides not in market update, skipping.")
