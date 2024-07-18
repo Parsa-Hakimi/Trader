@@ -93,8 +93,8 @@ class BitpinProxy:
         path = '/v1/wlt/wallets/'
         resp = self._send_request(path, authenticated=True).json()
         wallet = {}
-        for token_info in resp:
-            logger.info("TOKEN INFO: %s", str(token_info))
+        for token_info in resp["results"]:
+            # logger.info("TOKEN INFO: %s", str(token_info))
             wallet[token_info['currency']['code']] = float(token_info['total'])
             # TODO: there is also a 'frozen' key and a 'total' key, what are they?
         return wallet
