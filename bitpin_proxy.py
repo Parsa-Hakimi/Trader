@@ -4,8 +4,8 @@ from typing import Literal
 
 import requests
 
-from calculator import Order
 from market_repo import get_market_base_and_quote
+from order import Order
 
 BITPIN_URL = 'https://api.bitpin.ir'
 BITPIN_API_KEY = os.environ.get('BITPIN_API_KEY')
