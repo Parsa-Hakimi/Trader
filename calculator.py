@@ -7,6 +7,7 @@ from utils import get_market_base_and_quote
 from order import Order
 from trader import trader_agent
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
