@@ -4,7 +4,7 @@ from typing import Literal
 
 import requests
 
-from market_repo import get_market_base_and_quote
+from utils import get_market_base_and_quote
 from order import Order
 
 BITPIN_URL = 'https://api.bitpin.ir'

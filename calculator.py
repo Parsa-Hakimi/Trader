@@ -2,7 +2,8 @@ import csv
 import logging
 from typing import List
 
-from market_repo import MarketRepository, get_market_base_and_quote
+from market_repo import MarketRepository
+from utils import get_market_base_and_quote
 from order import Order
 from trader import trader_agent
 
