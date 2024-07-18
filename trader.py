@@ -5,6 +5,7 @@ from typing import List
 from bitpin_proxy import bitpin_proxy
 from order import Order
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
