@@ -5,6 +5,7 @@ from typing import List
 
 from bitpin_proxy import bitpin_proxy
 from order import Order
+from utils import MARKET_MAPPING
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,13 +46,13 @@ class TraderAgent:
         logger.info('Placing order: %s', str(order))
         order.identifier = str(uuid.uuid4())
 
-        # bitpin_proxy.place_order(
-        #     market_id=MARKET_MAPPING.get(order.market),
-        #     base_amount=order.amount,
-        #     price=order.price,
-        #     side=order.side,
-        #     identifier=order.identifier,
-        # )
+        bitpin_proxy.place_order(
+            market_id=MARKET_MAPPING.get(order.market),
+            base_amount=order.amount,
+            price=order.price,
+            side=order.side,
+            identifier=order.identifier,
+        )
         # TODO: Check order is placed
 
         self.open_orders.append(order)
