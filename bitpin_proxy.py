@@ -82,8 +82,8 @@ class BitpinProxy:
             orders.append(Order(
                 market=get_market_base_and_quote(order['market']['id']),
                 identifier=order['identifier'],
-                amount=order['remain_amount'],
-                price=order['price'],
+                amount=float(order['remain_amount']),
+                price=float(order['price']),
                 side=order['type'],
             ))
         return orders
@@ -93,7 +93,8 @@ class BitpinProxy:
         resp = self._send_request(path, authenticated=True).json()
         wallet = {}
         for token_info in resp:
-            wallet[token_info['currency']['code']] = token_info['total']
+            logger.info("TOKEN INFO: %s", str(token_info))
+            wallet[token_info['currency']['code']] = float(token_info['total'])
             # TODO: there is also a 'frozen' key and a 'total' key, what are they?
         return wallet
 
