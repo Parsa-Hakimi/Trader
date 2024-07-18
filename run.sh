@@ -2,4 +2,4 @@
 
 source .venv/bin/activate
 pip install -r requirements.txt
-python main.py | tee -i "logger.log"
+python main.py 2>&1 | tee -i "logger.log"
