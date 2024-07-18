@@ -61,7 +61,7 @@ class Triangle:
                     "secondary_market_order_amount": amount,
                     "secondary_market_price": float(a2.get('price')),
                     "secondary_quote_optimal_position": "buy",
-                    "secondary_quote_order_amount": amount / float(a2.get('price')),
+                    "secondary_quote_order_amount": amount * float(a2.get('price')),
                     "secondary_quote_price": float(a3.get('price')),
                     "expected_profit": profit}
 
@@ -78,7 +78,7 @@ class Triangle:
                     "secondary_market_order_amount": amount,
                     "secondary_market_price": float(b2.get('price')),
                     "secondary_quote_optimal_position": "sell",
-                    "secondary_quote_order_amount": amount / float(b2.get('price')),
+                    "secondary_quote_order_amount": amount * float(b2.get('price')),
                     "secondary_quote_price": float(b3.get('price')),
                     "expected_profit": profit}
 
