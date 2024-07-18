@@ -1,8 +1,11 @@
+import logging
 import os
 from typing import Literal
 
 import requests
-import logging
+
+from calculator import Order
+from market_repo import get_market_base_and_quote
 
 BITPIN_URL = 'https://api.bitpin.ir'
 BITPIN_API_KEY = os.environ.get('BITPIN_API_KEY')
@@ -72,16 +75,36 @@ class BitpinProxy:
 
         return self._send_request(url_tmpl).json()
 
-    def get_my_active_orders(self):
-        return self._send_request('/v1/odr/orders/?state=active', authenticated=True).json()
+    def get_my_open_orders(self):
+        orders = []
+        resp = self._send_request('/v1/odr/orders/?state=active', authenticated=True).json()
+        for order in resp['results']:
+            orders.append(Order(
+                market=get_market_base_and_quote(order['market']['id']),
+                identifier=order['identifier'],
+                amount=order['remain_amount'],
+                price=order['price'],
+                side=order['type'],
+            ))
+        return orders
 
-    def post_order(
+    def get_wallet_info(self):
+        path = '/v1/wlt/wallets/'
+        resp = self._send_request(path, authenticated=True).json()
+        wallet = {}
+        for token_info in resp:
+            wallet[token_info['currency']['code']] = token_info['total']
+            # TODO: there is also a 'frozen' key and a 'total' key, what are they?
+        return wallet
+
+    def place_order(
             self,
             market_id: int,
             base_amount: float,
             price: float,
-            position: Literal['buy', 'sell'],
-            mode='limit'
+            side: Literal['buy', 'sell'],
+            mode='limit',
+            identifier=None,
     ):
         logger.info("Posting order")
         if mode != 'limit':
@@ -94,14 +117,20 @@ class BitpinProxy:
             # 'amount2': 0,
             'price': price,
             'mode': 'limit',
-            'type': position,
+            'type': side,
             # 'identifier': '',  # TODO: we may need this later
             'price_limit': price,
             # 'price_stop': 0,
             # 'price_limit_oco': 0,
         }
 
-        return self._send_request(url, method='post', body=payload, authenticated=True).json()
+        if identifier is not None:
+            payload['identifier'] = identifier
+
+        resp = self._send_request(url, method='post', body=payload, authenticated=True)
+
+        # TODO: Error handling
+        return resp.json()
 
 
 bitpin_proxy = BitpinProxy()
