@@ -22,7 +22,7 @@ class BitpinProxy:
         self.refresh_token = ''
 
     def _send_request(self, path, method='get', body=None, authenticated=False):
-        logger.info("Sending request. path=(%s)", path)
+        logger.info("Sending request. path=(%s) method=(%s) auth=(%s)", path, method, str(authenticated))
         url = f'{self.base_url}{path}'
 
         request_method = getattr(requests, method.lower())
@@ -37,9 +37,10 @@ class BitpinProxy:
         if resp.status_code in [401, 403]:
             logger.info("Request failed. Retrying...")
             self.refresh()
-            headers['Authentication'] = f'Bearer {self.access_token}'
+            headers['Authorization'] = f'Bearer {self.access_token}'
             logger.info("Resending request. path=(%s)", path)
             resp = request_method(url, json=body, headers=headers)
+            logger.info("Response received [%d]: %s", resp.status_code, resp.text[:60])
 
         return resp
 
