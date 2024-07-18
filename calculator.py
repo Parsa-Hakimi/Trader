@@ -48,7 +48,7 @@ class Triangle:
         b2 = market_repo.get_market_bid(self.base_token, self.secondary_token)
         b3 = market_repo.get_market_bid(self.secondary_token, self.main_token)
 
-        if float(b1.get('price')) - float(a2.get('price')) * float(a3.get('price')) > 0:
+        if b1 and a2 and a3 and float(b1.get('price')) - float(a2.get('price')) * float(a3.get('price')) > 0:
             profit_per_unit = float(b1.get('price')) - float(a2.get('price')) * float(a3.get('price'))
             amount = min(float(b1.get('remain')), float(a2.get('remain')))
             profit = profit_per_unit * amount
@@ -65,7 +65,7 @@ class Triangle:
                     "secondary_quote_price": float(a3.get('price')),
                     "expected_profit": profit}
 
-        elif -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price')) > 0:
+        elif a1 and b2 and b3 and -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price')) > 0:
             profit_per_unit = -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price'))
             amount = min(float(a1.get('remain')), float(b2.get('remain')))
             profit = profit_per_unit * amount
