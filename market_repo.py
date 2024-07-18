@@ -1,38 +1,12 @@
 import json
 from collections import defaultdict
-from typing import Tuple
 
-import rel
 import websocket
 
 from bitpin_proxy import bitpin_proxy
+from utils import MARKET_MAPPING
 
 BITPIN_WS_ADDR = 'wss://ws.bitpin.ir'
-
-MARKET_MAPPING = {
-    ('USDT', 'IRT'): 5,
-    ('NOT', 'IRT'): 772,
-    ('NOT', 'USDT'): 773,
-    ('METIS', 'IRT'): 365,
-    ('METIS', 'USDT'): 366,
-    ('BTC', 'IRT'): 1,
-    ('BTC', 'USDT'): 2,
-    ('ETH', 'USDT'): 3,
-    ('ETH', 'IRT'): 4,
-    ('TON', 'IRT'): 355,
-    ('TON', 'USDT'): 356,
-    ('DOGE', 'IRT'): 62,
-    ('DOGE', 'USDT'): 63,
-}
-
-
-def get_market_base_and_quote(market_id: int) -> Tuple[str, str] | Tuple[None, None]:
-    try:
-        market = next(filter(lambda m: m[1] == market_id, MARKET_MAPPING.items()))
-        return market[0]
-    except StopIteration:
-        return None, None
-
 
 websocket.setdefaulttimeout(20)
 
