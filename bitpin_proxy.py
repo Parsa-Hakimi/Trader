@@ -31,6 +31,7 @@ class BitpinProxy:
         if authenticated:
             self._ensure_access()
             headers['Authorization'] = f'Bearer {self.access_token}'
+            logger.info("Auth Headers: %s", headers['Authorization'][:30])
 
         resp = request_method(url, json=body, headers=headers)
         logger.info("Response received [%d]: %s", resp.status_code, resp.text[:60])
