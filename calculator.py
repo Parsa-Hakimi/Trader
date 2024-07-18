@@ -145,7 +145,7 @@ class TriangleCalculator:
                 )
 
                 order_set = [o1, o2, o3]
-                if res['expected_profit'] > 100:
+                if res['expected_profit'] > 0:
                     trader_agent.place_order_set(order_set)
 
                 writer.writerow(res.values())
