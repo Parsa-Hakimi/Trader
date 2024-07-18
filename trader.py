@@ -1,9 +1,11 @@
+import logging
 import uuid
 from typing import List
 
 from bitpin_proxy import bitpin_proxy
-from calculator import logger
 from order import Order
+
+logger = logging.getLogger(__name__)
 
 
 def _get_order_set_base_tokens(order_set):
