@@ -23,7 +23,7 @@ class MarketRepository:
                                          on_close=self._on_close)
         self.ws.on_open = self._on_open
 
-        # self.update_by_order_list()
+        self.update_by_order_list()
 
     def handle_currency_price_info_update_event(self, bitpin_resp: dict):
         self.data = bitpin_resp
