@@ -33,6 +33,7 @@ class BitpinProxy:
             headers['Authorization'] = f'Bearer {self.access_token}'
 
         resp = request_method(url, json=body, headers=headers)
+        logger.info("Response received [%d]: %s", resp.status_code, resp.text[:60])
         if resp.status_code in [401, 403]:
             logger.info("Request failed. Retrying...")
             self.refresh()
