@@ -108,16 +108,20 @@ class MarketRepository:
         market_id = int(data['market']['id'])
         sorted_bids = sorted(data['buy'], key=lambda order: float(order['price']), reverse=True)
         sorted_asks = sorted(data['sell'], key=lambda order: float(order['price']))
+        updated = False
         if self.market_prices.get(market_id, {}).get('best_bid') != sorted_bids[0]:
             print(f'new best bid: \n{self.market_prices.get(market_id, {}).get("best_bid")} \n{sorted_bids[0]}')
             self.market_prices[market_id]['best_bid'] = sorted_bids[0]
+            updated = True
         if self.market_prices.get(market_id, {}).get('best_ask') != sorted_asks[0]:
             print(f'new best ask: \n{self.market_prices.get(market_id, {}).get("best_ask")} \n{sorted_asks[0]}')
             self.market_prices[market_id]['best_ask'] = sorted_asks[0]
+            updated = True
 
         # print(f'market={data["market"]["code"]} best_bid={sorted_bids[0]} best_ask={sorted_asks[0]}')
 
-        self._call_callbacks(market_id)
+        if updated:
+            self._call_callbacks(market_id)
 
     def _call_callbacks(self, market_id: int):
         for cb in self.callbacks:
