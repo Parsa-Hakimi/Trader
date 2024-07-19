@@ -85,7 +85,6 @@ class PositionFinder(Actor):
         self.busy = False
         self.queued_markets = SetStack()  # Use stack to handle most updated markets first, maybe we need to change that
         self.latest_market_data = None
-        self.calc = TriangleCalculator()
 
     @switch.message(type=MarketUpdate)
     def handle_market_update(self, sender: Address, message: MarketUpdate):
@@ -105,7 +104,7 @@ class PositionFinder(Actor):
             self.busy = False
 
     def calculate(self, market_id: int):
-        self.calc.calculate(self.latest_market_data, market_id=market_id)
+        TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
 
 
 if __name__ == "__main__":
