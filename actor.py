@@ -58,13 +58,14 @@ class MarketActor(Actor):
     @switch.ask(type=Start)
     def handle_start(self, sender: Address, ref_id: str, message: Start):
         logger.info("MarketActor: Handling Start")
-        self.spawn(actor=PositionFinder())
+        self.trader = self.spawn(actor=PositionFinder())
         self.market_repo = MarketRepository()
         self.market_repo.add_callback(self.market_updated)
         self.market_repo.run()
 
-    def market_updated(self, market_repo, **kwargs):
-        logger.info("MARKET UPDATED: %s", str(kwargs))
+    def market_updated(self, market_repo, market_id):
+        logger.info("MARKET UPDATED: %s", str(market_id))
+        self.tell(self.trader, MarketUpdate(self.market_repo, market_id=market_id))
 
 
 @dataclass
