@@ -25,6 +25,13 @@ class MarketRepository:
 
         # self.update_by_order_list()
 
+    def only_data(self):
+        m = MarketRepository()
+        m.data = self.data
+        m.market_prices = self.market_prices
+        m.ws = None
+        return m
+
     def handle_currency_price_info_update_event(self, bitpin_resp: dict):
         self.data = bitpin_resp
         for cb in self.callbacks:
