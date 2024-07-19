@@ -9,7 +9,9 @@ from utils import get_market_base_and_quote
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+fh = logging.FileHandler('trianglelog.log')
+fh.setLevel(logging.DEBUG)
+logger.addHandler(fh)
 
 class Triangle:
     def __init__(self, main_token, secondary_token, base_token):
