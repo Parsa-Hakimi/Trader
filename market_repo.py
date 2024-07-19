@@ -78,6 +78,7 @@ class MarketRepository:
         return self.market_prices[market_id].get('best_bid')
 
     def run(self):
+        print("Running market repo")
         self.ws.run_forever(
             ping_interval=10,
             ping_payload='{ "message" : "PING"}'
