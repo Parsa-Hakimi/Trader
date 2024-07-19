@@ -62,7 +62,13 @@ class MarketActor(Actor):
         logger.info("MarketActor: Trader Spawned")
         self.market_repo = MarketRepository(True)
         self.market_repo.add_callback(self.market_updated)
-        self.market_repo.run()
+        while True:
+            try:
+                self.market_repo.run()
+            except KeyboardInterrupt:
+                break
+            except:
+                pass
 
     def market_updated(self, market_repo, market_id):
         logger.info("MARKET UPDATED: %s", str(market_id))
