@@ -114,7 +114,7 @@ class PositionFinder(Actor):
 
 
 if __name__ == "__main__":
-    system = ActorSystem(n_nodes=1)
+    system = ActorSystem(n_nodes=4)
     market_actor = system.spawn(actor=MarketActor(), key='market')
 
     time.sleep(2)
