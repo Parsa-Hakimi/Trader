@@ -12,7 +12,7 @@ websocket.setdefaulttimeout(20)
 
 
 class MarketRepository:
-    def __init__(self):
+    def __init__(self, u = False):
         self.data = {}
         self.market_prices = defaultdict(dict)
         self.callbacks = []
@@ -23,7 +23,8 @@ class MarketRepository:
                                          on_close=self._on_close)
         self.ws.on_open = self._on_open
 
-        # self.update_by_order_list()
+        if u:
+            self.update_by_order_list()
 
     def only_data(self):
         m = MarketRepository()

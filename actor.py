@@ -60,7 +60,7 @@ class MarketActor(Actor):
         logger.info("MarketActor: Handling Start")
         self.trader = self.spawn(actor=PositionFinder())
         logger.info("MarketActor: Trader Spawned")
-        self.market_repo = MarketRepository()
+        self.market_repo = MarketRepository(True)
         self.market_repo.add_callback(self.market_updated)
         self.market_repo.run()
 
