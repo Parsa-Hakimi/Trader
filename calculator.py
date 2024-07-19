@@ -102,10 +102,10 @@ class TriangleCalculator:
         self.log_file = open('log_file.csv', mode='a')
         self.triangles = [
             Triangle('IRT', 'USDT', 'NOT'),
-            Triangle('IRT', 'USDT', 'DOGE'),
-            Triangle('IRT', 'USDT', 'TON'),
-            Triangle('IRT', 'USDT', 'BTC'),
-            Triangle('IRT', 'USDT', 'ETH'),
+            # Triangle('IRT', 'USDT', 'DOGE'),
+            # Triangle('IRT', 'USDT', 'TON'),
+            # Triangle('IRT', 'USDT', 'BTC'),
+            # Triangle('IRT', 'USDT', 'ETH'),
         ]
 
     def calculate(self, market_repo: MarketRepository, **kwargs):
