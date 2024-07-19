@@ -118,7 +118,7 @@ class BitpinProxy:
         url = '/v1/odr/orders/'
         payload = {
             'market': market_id,
-            'amount1': base_amount,
+            'amount1': round(base_amount, 9),
             # 'amount2': 0,
             'price': price,
             'mode': 'limit',
