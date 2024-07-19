@@ -4,7 +4,7 @@ from collections import deque
 from dataclasses import dataclass
 from lyrid import ActorSystem, Actor, Address, Message, switch, use_switch
 
-from calculator import TriangleCalculator
+
 from market_repo import MarketRepository
 
 logging.basicConfig(level=logging.INFO)
@@ -88,22 +88,28 @@ class PositionFinder(Actor):
 
     @switch.message(type=MarketUpdate)
     def handle_market_update(self, sender: Address, message: MarketUpdate):
+        logger.info("Handling market update")
         self.latest_market_data = message.market_repo
         if self.busy:
+            logger.info("Busy! Put in queue")
             self.queued_markets.add(message.market_id)
         else:
+            logger.info("Running calc in bg")
             self.busy = True
             self.run_in_background(self.calculate, args=(message.market_id,))
 
     @switch.background_task_exited(exception=None)
     def calc_done(self):
+        logger.info("bg task done")
         if self.queued_markets:
             market_id = self.queued_markets.pop()
+            logger.info("running another")
             self.run_in_background(self.calculate, args=(market_id,))
         else:
             self.busy = False
 
     def calculate(self, market_id: int):
+        from calculator import TriangleCalculator
         TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
 
 
