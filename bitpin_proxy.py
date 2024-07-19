@@ -34,14 +34,16 @@ class BitpinProxy:
             logger.info("Auth Headers: %s", headers['Authorization'][:30])
 
         resp = request_method(url, json=body, headers=headers)
-        logger.info("Response received [%d]: %s", resp.status_code, resp.text[:60])
-        if resp.status_code in [401, 403]:
+        logger.info("Response received [%d]: %s", resp.status_code, resp.text[:120])
+        retries = 0
+        while resp.status_code in [401, 403] and retries < 3:
             logger.info("Request failed. Retrying...")
             self.refresh()
             headers['Authorization'] = f'Bearer {self.access_token}'
             logger.info("Resending request. path=(%s)", path)
             resp = request_method(url, json=body, headers=headers)
-            logger.info("Response received [%d]: %s", resp.status_code, resp.text[:60])
+            logger.info("Response received [%d]: %s", resp.status_code, resp.text[:120])
+            retries += 1
 
         return resp
 
