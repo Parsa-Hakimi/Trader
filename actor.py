@@ -1,0 +1,117 @@
+import logging
+import time
+from collections import deque
+from dataclasses import dataclass
+from lyrid import ActorSystem, Actor, Address, Message, switch, use_switch
+
+from calculator import TriangleCalculator
+from market_repo import MarketRepository
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class SetStack:
+    def __init__(self):
+        self.set = set()
+        self.stack = []
+
+    def add(self, value):
+        if value not in self.set:
+            self.set.add(value)
+            self.stack.append(value)
+        else:
+            self.stack.remove(value)
+            self.stack.append(value)
+
+    def pop(self):
+        if len(self.stack) > 0:
+            value = self.stack.pop()
+            self.set.remove(value)
+            return value
+
+    def __len__(self):
+        return len(self.stack)
+
+
+@dataclass
+class TextMessage(Message):
+    value: str
+
+
+@use_switch
+class HelloWorld(Actor):
+    @switch.message(type=TextMessage)
+    def receive_text_message(self, sender: Address, message: TextMessage):
+        if message.value == "hello":
+            self.tell(sender, TextMessage("world"))
+
+
+@dataclass
+class Start(Message):
+    pass
+
+
+@use_switch
+@dataclass
+class MarketActor(Actor):
+    @switch.ask(type=Start)
+    def handle_start(self, sender: Address, ref_id: str, message: Start):
+        logger.info("MarketActor: Handling Start")
+        self.spawn(actor=PositionFinder())
+        self.market_repo = MarketRepository()
+        self.market_repo.add_callback(self.market_updated)
+        self.market_repo.run()
+
+    def market_updated(self, market_repo, **kwargs):
+        logger.info("MARKET UPDATED: %s", str(kwargs))
+
+
+@dataclass
+class MarketUpdate(Message):
+    market_repo: MarketRepository
+    market_id: int
+
+
+class CalculationDone(Message):
+    pass
+
+
+@use_switch
+class PositionFinder(Actor):
+    def __init__(self):
+        self.busy = False
+        self.queued_markets = SetStack()  # Use stack to handle most updated markets first, maybe we need to change that
+        self.latest_market_data = None
+        self.calc = TriangleCalculator()
+
+    @switch.message(type=MarketUpdate)
+    def handle_market_update(self, sender: Address, message: MarketUpdate):
+        self.latest_market_data = message.market_repo
+        if self.busy:
+            self.queued_markets.add(message.market_id)
+        else:
+            self.busy = True
+            self.run_in_background(self.calculate, args=(message.market_id,))
+
+    @switch.background_task_exited(exception=None)
+    def calc_done(self):
+        if self.queued_markets:
+            market_id = self.queued_markets.pop()
+            self.run_in_background(self.calculate, args=(market_id,))
+        else:
+            self.busy = False
+
+    def calculate(self, market_id: int):
+        self.calc.calculate(self.latest_market_data, market_id=market_id)
+
+
+if __name__ == "__main__":
+    system = ActorSystem(n_nodes=1)
+    market_actor = system.spawn(actor=MarketActor(), key='market')
+
+    time.sleep(2)
+
+    system.ask(market_actor, Start())
+
+    # system.force_stop()
