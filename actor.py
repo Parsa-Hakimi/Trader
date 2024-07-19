@@ -4,7 +4,6 @@ from collections import deque
 from dataclasses import dataclass
 from lyrid import ActorSystem, Actor, Address, Message, switch, use_switch
 
-
 from market_repo import MarketRepository
 
 logging.basicConfig(level=logging.INFO)
@@ -55,11 +54,11 @@ class Start(Message):
 @use_switch
 @dataclass
 class MarketActor(Actor):
+    trader: Address
+
     @switch.ask(type=Start)
     def handle_start(self, sender: Address, ref_id: str, message: Start):
         logger.info("MarketActor: Handling Start")
-        self.trader = self.spawn(actor=PositionFinder())
-        logger.info("MarketActor: Trader Spawned")
         self.market_repo = MarketRepository(True)
         self.market_repo.add_callback(self.market_updated)
         while True:
@@ -120,9 +119,9 @@ class PositionFinder(Actor):
 
 
 if __name__ == "__main__":
-    system = ActorSystem(n_nodes=4)
-    market_actor = system.spawn(actor=MarketActor(), key='market')
-
+    system = ActorSystem(n_nodes=2)
+    trader = system.spawn(actor=PositionFinder())
+    market_actor = system.spawn(actor=MarketActor(trader=trader), key='market')
     time.sleep(2)
 
     system.ask(market_actor, Start())
