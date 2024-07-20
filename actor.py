@@ -113,6 +113,16 @@ class PositionFinder(Actor):
         else:
             self.busy = False
 
+    @switch.background_task_exited(exception=Exception)
+    def calc_done_exc(self, exception: Exception):
+        logger.info("bg task done with exception %s", exception)
+        if self.queued_markets:
+            market_id = self.queued_markets.pop()
+            logger.info("running another")
+            self.run_in_background(self.calculate, args=(market_id,))
+        else:
+            self.busy = False
+
     def calculate(self, market_id: int):
         from calculator import TriangleCalculator
         TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
