@@ -41,6 +41,7 @@ class TraderAgent:
         if self.verify_order_set(order_set):
             for order in order_set:
                 self._place_order(order)
+            self.update_orders_and_wallet()
 
     def _place_order(self, order: Order):
         logger.info('Placing order: %s', str(order))
@@ -59,7 +60,6 @@ class TraderAgent:
 
     def verify_order_set(self, order_set: List[Order]) -> bool:
         logger.info('Verifying orders: %s', str(order_set))
-        self.update_orders_and_wallet()
 
         order_set_tokens = _get_order_set_base_tokens(order_set)
 
