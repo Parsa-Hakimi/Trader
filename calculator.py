@@ -54,9 +54,9 @@ class Triangle:
             profit_per_unit = float(b1.get('price')) - float(a2.get('price')) * float(a3.get('price'))
             amount = min(float(b1.get('remain')), float(a2.get('remain')))
 
-            amount = min(amount, trader_agent.wallet[self.base_token])
-            tether_amount = trader_agent.wallet[self.main_token] / float(a3.get('price'))
-            tether_amount = min(tether_amount, trader_agent.wallet[self.secondary_token])
+            amount = min(amount, trader_agent.get_tradable_balance(self.base_token))
+            tether_amount = trader_agent.get_tradable_balance(self.main_token) / float(a3.get('price'))
+            tether_amount = min(tether_amount, trader_agent.get_tradable_balance(self.secondary_token))
             amount = min(amount, tether_amount / float(a2.get('price')))
 
             profit = profit_per_unit * amount
@@ -77,9 +77,9 @@ class Triangle:
             profit_per_unit = -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price'))
             amount = min(float(a1.get('remain')), float(b2.get('remain')))
 
-            amount = min(amount, trader_agent.wallet[self.base_token])
-            rial_amount = trader_agent.wallet[self.secondary_token] * float(b3.get('price'))
-            rial_amount = min(rial_amount, trader_agent.wallet[self.main_token])
+            amount = min(amount, trader_agent.get_tradable_balance(self.base_token))
+            rial_amount = trader_agent.get_tradable_balance(self.secondary_token) * float(b3.get('price'))
+            rial_amount = min(rial_amount, trader_agent.get_tradable_balance(self.main_token))
             amount = min(amount, rial_amount / float(a1.get('price')))
 
             profit = profit_per_unit * amount
