@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from lyrid import ActorSystem, Actor, Address, Message, switch, use_switch
 
 from market_repo import MarketRepository
+from trader import trader_agent
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -90,6 +91,7 @@ class PositionFinder(Actor):
         self.busy = False
         self.queued_markets = SetStack()  # Use stack to handle most updated markets first, maybe we need to change that
         self.latest_market_data = None
+        self.market_update_count = 0
 
     @switch.message(type=MarketUpdate)
     def handle_market_update(self, sender: Address, message: MarketUpdate):
@@ -106,6 +108,13 @@ class PositionFinder(Actor):
     @switch.background_task_exited(exception=None)
     def calc_done(self):
         logger.info("bg task done")
+        self.try_running_queued_tasks()
+
+    def try_running_queued_tasks(self):
+        self.market_update_count += 1
+        if self.market_update_count % 10 == 0:
+            trader_agent.update_orders_and_wallet()
+
         if self.queued_markets:
             market_id = self.queued_markets.pop()
             logger.info("running another")
@@ -116,12 +125,7 @@ class PositionFinder(Actor):
     @switch.background_task_exited(exception=Exception)
     def calc_done_exc(self, exception: Exception):
         logger.info("bg task done with exception %s", exception)
-        if self.queued_markets:
-            market_id = self.queued_markets.pop()
-            logger.info("running another")
-            self.run_in_background(self.calculate, args=(market_id,))
-        else:
-            self.busy = False
+        self.try_running_queued_tasks()
 
     def calculate(self, market_id: int):
         from calculator import TriangleCalculator
