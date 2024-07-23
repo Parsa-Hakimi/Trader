@@ -112,7 +112,7 @@ class PositionFinder(Actor):
 
     def try_running_queued_tasks(self):
         self.market_update_count += 1
-        if self.market_update_count % 10 == 0:
+        if self.market_update_count % 25 == 0:
             trader_agent.update_orders_and_wallet()
 
         if self.queued_markets:
