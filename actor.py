@@ -48,8 +48,8 @@ class Start(Message):
 class MarketActor(Actor):
     trader: Address
 
-    @switch.ask(type=Start)
-    def handle_start(self, sender: Address, ref_id: str, message: Start):
+    @switch.message(type=Start)
+    def handle_start(self, sender: Address, message: Start):
         logger.info("MarketActor: Handling Start")
         self.market_repo = MarketRepository(True)
         self.market_repo.add_callback(self.market_updated)
@@ -126,26 +126,18 @@ class PositionFinder(Actor):
         TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
 
 
-@use_switch
-class Metrics(Actor):
-    @switch.message(type=Start)
-    def handle_start(self, sender: Address, message: Start):
-        root = Resource()
-        root.putChild(b'metrics', MetricsResource())
-
-        factory = Site(root)
-        reactor.listenTCP(8000, factory)
-        reactor.run()
-
-
 if __name__ == "__main__":
     system = ActorSystem(n_nodes=4)
-    metrics = system.spawn(actor=Metrics())
     trader = system.spawn(actor=PositionFinder())
     market_actor = system.spawn(actor=MarketActor(trader=trader), key='market')
     time.sleep(2)
 
-    system.tell(metrics, Start())
-    system.ask(market_actor, Start())
+    system.tell(market_actor, Start())
 
     # system.force_stop()
+    root = Resource()
+    root.putChild(b'metrics', MetricsResource())
+
+    factory = Site(root)
+    reactor.listenTCP(8000, factory)
+    reactor.run()
