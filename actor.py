@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass
 
 from lyrid import ActorSystem, Actor, Address, Message, switch, use_switch
+from prometheus_client import CollectorRegistry, multiprocess
 from prometheus_client.twisted import MetricsResource
 from twisted.internet import reactor
 from twisted.web.resource import Resource
@@ -135,8 +136,10 @@ if __name__ == "__main__":
     system.tell(market_actor, Start())
 
     # system.force_stop()
+    registry = CollectorRegistry()
+    multiprocess.MultiProcessCollector(registry)
     root = Resource()
-    root.putChild(b'metrics', MetricsResource())
+    root.putChild(b'metrics', MetricsResource(registry))
 
     factory = Site(root)
     reactor.listenTCP(8000, factory)
