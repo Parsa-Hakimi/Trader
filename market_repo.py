@@ -122,14 +122,14 @@ class MarketRepository:
         if self.market_prices.get(market_id, {}).get('best_bid') != sorted_bids[0]:
             print(f'new best bid: \n{self.market_prices.get(market_id, {}).get("best_bid")} \n{sorted_bids[0]}')
             self.market_prices[market_id]['best_bid'] = sorted_bids[0]
-            metrics.best_price.labels(market=data['market']['code'], type='bid').set(int(sorted_bids[0].get('price')))
+            metrics.best_price.labels(market=data['market']['code'], type='bid').set(float(sorted_bids[0].get('price')))
             metrics.best_amount.labels(market=data['market']['code'], type='bid').set(
                 float(sorted_bids[0].get('remain')))
             updated = True
         if self.market_prices.get(market_id, {}).get('best_ask') != sorted_asks[0]:
             print(f'new best ask: \n{self.market_prices.get(market_id, {}).get("best_ask")} \n{sorted_asks[0]}')
             self.market_prices[market_id]['best_ask'] = sorted_asks[0]
-            metrics.best_price.labels(market=data['market']['code'], type='ask').set(int(sorted_asks[0].get('price')))
+            metrics.best_price.labels(market=data['market']['code'], type='ask').set(float(sorted_asks[0].get('price')))
             metrics.best_amount.labels(market=data['market']['code'], type='ask').set(
                 float(sorted_asks[0].get('remain')))
             updated = True
