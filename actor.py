@@ -9,6 +9,7 @@ from twisted.internet import reactor
 from twisted.web.resource import Resource
 from twisted.web.server import Site
 
+import metrics
 from market_repo import MarketRepository
 from trader import trader_agent
 
@@ -124,7 +125,8 @@ class PositionFinder(Actor):
 
     def calculate(self, market_id: int):
         from calculator import TriangleCalculator
-        TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
+        with metrics.calc_duration.time():
+            TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
 
 
 if __name__ == "__main__":
