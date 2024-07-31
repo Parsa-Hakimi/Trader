@@ -1,8 +1,12 @@
 import logging
 import time
-from collections import deque
 from dataclasses import dataclass
+
 from lyrid import ActorSystem, Actor, Address, Message, switch, use_switch
+from prometheus_client.twisted import MetricsResource
+from twisted.internet import reactor
+from twisted.web.resource import Resource
+from twisted.web.server import Site
 
 from market_repo import MarketRepository
 from trader import trader_agent
@@ -32,19 +36,6 @@ class SetStack:
 
     def __len__(self):
         return len(self.stack)
-
-
-@dataclass
-class TextMessage(Message):
-    value: str
-
-
-@use_switch
-class HelloWorld(Actor):
-    @switch.message(type=TextMessage)
-    def receive_text_message(self, sender: Address, message: TextMessage):
-        if message.value == "hello":
-            self.tell(sender, TextMessage("world"))
 
 
 @dataclass
@@ -135,12 +126,26 @@ class PositionFinder(Actor):
         TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
 
 
+@use_switch
+class Metrics(Actor):
+    @switch.message(type=Start)
+    def handle_start(self, sender: Address, ref_id: str, message: Start):
+        root = Resource()
+        root.putChild(b'metrics', MetricsResource())
+
+        factory = Site(root)
+        reactor.listenTCP(8000, factory)
+        reactor.run()
+
+
 if __name__ == "__main__":
     system = ActorSystem(n_nodes=2)
+    metrics = system.spawn(actor=Metrics())
     trader = system.spawn(actor=PositionFinder())
     market_actor = system.spawn(actor=MarketActor(trader=trader), key='market')
     time.sleep(2)
 
+    system.tell(metrics, Start())
     system.ask(market_actor, Start())
 
     # system.force_stop()
