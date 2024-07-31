@@ -139,7 +139,7 @@ class Metrics(Actor):
 
 
 if __name__ == "__main__":
-    system = ActorSystem(n_nodes=2)
+    system = ActorSystem(n_nodes=4)
     metrics = system.spawn(actor=Metrics())
     trader = system.spawn(actor=PositionFinder())
     market_actor = system.spawn(actor=MarketActor(trader=trader), key='market')
