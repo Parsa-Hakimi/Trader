@@ -7,7 +7,7 @@ import requests
 from utils import get_market_base_and_quote
 from order import Order
 
-BITPIN_URL = 'https://api.bitpin.ir'
+BITPIN_URL = 'https://api.bitpin.org'
 BITPIN_API_KEY = os.environ.get('BITPIN_API_KEY')
 BITPIN_SECRET_KEY = os.environ.get('BITPIN_SECRET_KEY')
 

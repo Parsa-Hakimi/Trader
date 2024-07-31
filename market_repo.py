@@ -6,7 +6,7 @@ import websocket
 from bitpin_proxy import bitpin_proxy
 from utils import MARKET_MAPPING
 
-BITPIN_WS_ADDR = 'wss://ws.bitpin.ir'
+BITPIN_WS_ADDR = 'wss://ws.bitpin.org'
 
 websocket.setdefaulttimeout(20)
 
