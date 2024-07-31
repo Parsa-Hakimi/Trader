@@ -129,7 +129,7 @@ class PositionFinder(Actor):
 @use_switch
 class Metrics(Actor):
     @switch.message(type=Start)
-    def handle_start(self, sender: Address, ref_id: str, message: Start):
+    def handle_start(self, sender: Address, message: Start):
         root = Resource()
         root.putChild(b'metrics', MetricsResource())
 
