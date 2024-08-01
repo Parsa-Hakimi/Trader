@@ -3,6 +3,7 @@ import uuid
 from collections import defaultdict
 from typing import List
 
+import metrics
 from bitpin_proxy import bitpin_proxy
 from order import Order
 from utils import MARKET_MAPPING
@@ -38,9 +39,16 @@ class TraderAgent:
 
     def place_order_set(self, order_set: List[Order]):
         logger.info('Placing orders: %s', str(order_set))
-        if self.verify_order_set(order_set):
-            for order in order_set:
-                self._place_order(order)
+
+        orders_placed = False
+        with metrics.order_placement_duration.time():
+            if self.verify_order_set(order_set):
+                for order in order_set:
+                    self._place_order(order)
+                orders_placed = True
+
+        if orders_placed:
+            self.update_orders_and_wallet()
 
     def _place_order(self, order: Order):
         logger.info('Placing order: %s', str(order))
@@ -59,7 +67,6 @@ class TraderAgent:
 
     def verify_order_set(self, order_set: List[Order]) -> bool:
         logger.info('Verifying orders: %s', str(order_set))
-        self.update_orders_and_wallet()
 
         order_set_tokens = _get_order_set_base_tokens(order_set)
 

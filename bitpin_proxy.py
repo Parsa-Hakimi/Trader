@@ -7,7 +7,7 @@ import requests
 from utils import get_market_base_and_quote
 from order import Order
 
-BITPIN_URL = 'https://api.bitpin.ir'
+BITPIN_URL = 'https://api.bitpin.org'
 BITPIN_API_KEY = os.environ.get('BITPIN_API_KEY')
 BITPIN_SECRET_KEY = os.environ.get('BITPIN_SECRET_KEY')
 
@@ -21,9 +21,11 @@ class BitpinProxy:
         self.access_token = ''
         self.refresh_token = ''
 
-    def _send_request(self, path, method='get', body=None, authenticated=False):
+    def _send_request(self, path, method='get', body=None, authenticated=False, base_url=None):
+        if base_url is None:
+            base_url = self.base_url
         logger.info("Sending request. path=(%s) method=(%s) auth=(%s)", path, method, str(authenticated))
-        url = f'{self.base_url}{path}'
+        url = f'{base_url}{path}'
 
         request_method = getattr(requests, method.lower())
 
@@ -34,14 +36,21 @@ class BitpinProxy:
             logger.info("Auth Headers: %s", headers['Authorization'][:30])
 
         resp = request_method(url, json=body, headers=headers)
-        logger.info("Response received [%d]: %s", resp.status_code, resp.text[:60])
-        if resp.status_code in [401, 403]:
+        logger.info("Response received [%d]: %s", resp.status_code, resp.text[:120])
+
+        if resp.status_code == 429 and base_url.endswith('org'):
+            self._send_request(path, method, body, authenticated, base_url.replace('.org', '.ir'))
+
+        retries = 0
+        while resp.status_code in [401, 403] and retries < 3:
             logger.info("Request failed. Retrying...")
-            self.refresh()
-            headers['Authorization'] = f'Bearer {self.access_token}'
+            if authenticated:
+                self.refresh()
+                headers['Authorization'] = f'Bearer {self.access_token}'
             logger.info("Resending request. path=(%s)", path)
             resp = request_method(url, json=body, headers=headers)
-            logger.info("Response received [%d]: %s", resp.status_code, resp.text[:60])
+            logger.info("Response received [%d]: %s", resp.status_code, resp.text[:120])
+            retries += 1
 
         return resp
 
@@ -118,7 +127,7 @@ class BitpinProxy:
         url = '/v1/odr/orders/'
         payload = {
             'market': market_id,
-            'amount1': base_amount,
+            'amount1': round(base_amount, 9),
             # 'amount2': 0,
             'price': price,
             'mode': 'limit',
