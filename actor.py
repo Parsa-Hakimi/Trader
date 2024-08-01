@@ -129,7 +129,7 @@ class PositionFinder(Actor):
             TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
 
 
-if __name__ == "__main__":
+def run():
     system = ActorSystem(n_nodes=4)
     trader = system.spawn(actor=PositionFinder())
     market_actor = system.spawn(actor=MarketActor(trader=trader), key='market')
