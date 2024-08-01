@@ -37,12 +37,17 @@ class TraderAgent:
         logger.info("Open orders: %s", str(self.open_orders))
         logger.info("Wallet: %s", str(self.wallet))
 
-    @metrics.order_placement_duration.time()
     def place_order_set(self, order_set: List[Order]):
         logger.info('Placing orders: %s', str(order_set))
-        if self.verify_order_set(order_set):
-            for order in order_set:
-                self._place_order(order)
+
+        orders_placed = False
+        with metrics.order_placement_duration.time():
+            if self.verify_order_set(order_set):
+                for order in order_set:
+                    self._place_order(order)
+                orders_placed = True
+
+        if orders_placed:
             self.update_orders_and_wallet()
 
     def _place_order(self, order: Order):
