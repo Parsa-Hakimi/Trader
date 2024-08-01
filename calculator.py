@@ -66,13 +66,13 @@ class Triangle:
             return {"base": self.base_token,
                     "main_market_optimal_position": "sell",
                     "main_market_order_amount": amount,
-                    "main_market_price": float(b1.get('price')),
+                    "main_market_price": float(a2.get('price')) * float(a3.get('price')),
                     "secondary_market_optimal_position": "buy",
                     "secondary_market_order_amount": amount,
-                    "secondary_market_price": float(a2.get('price')),
+                    "secondary_market_price": float(b1.get('price')) / float(a3.get('price')),
                     "secondary_quote_optimal_position": "buy",
                     "secondary_quote_order_amount": amount * float(a2.get('price')),
-                    "secondary_quote_price": float(a3.get('price')),
+                    "secondary_quote_price": float(b1.get('price')) / float(a3.get('price')),
                     "expected_profit": profit}
 
         elif a1 and b2 and b3 and -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price')) > 0:
@@ -90,13 +90,13 @@ class Triangle:
             return {"base": self.base_token,
                     "main_market_optimal_position": "buy",
                     "main_market_order_amount": amount,
-                    "main_market_price": float(a1.get('price')),
+                    "main_market_price": float(b2.get('price')) * float(b3.get('price')),
                     "secondary_market_optimal_position": "sell",
                     "secondary_market_order_amount": amount,
-                    "secondary_market_price": float(b2.get('price')),
+                    "secondary_market_price": float(a1.get('price')) / float(b3.get('price')),
                     "secondary_quote_optimal_position": "sell",
                     "secondary_quote_order_amount": amount * float(b2.get('price')),
-                    "secondary_quote_price": float(b3.get('price')),
+                    "secondary_quote_price": float(a1.get('price')) / float(b3.get('price')),
                     "expected_profit": profit}
 
 

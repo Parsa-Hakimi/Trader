@@ -54,12 +54,18 @@ class TraderAgent:
         logger.info('Placing order: %s', str(order))
         order.identifier = str(uuid.uuid4())
 
+        kwargs = {}
+        if order.mode == 'oco':
+            kwargs['price_stop'] = order.price_stop
+            kwargs['price_limit_oco'] = order.price_limit_oco
+
         bitpin_proxy.place_order(
             market_id=MARKET_MAPPING.get(order.market),
             base_amount=order.amount,
             price=order.price,
             side=order.side,
             identifier=order.identifier,
+            **kwargs,
         )
         # TODO: Check order is placed
 

@@ -8,7 +8,10 @@ class Order:
     side: Literal["buy", "sell"]
     amount: float
     price: float
+    mode: str = 'limit'
     identifier: Optional[str] = None
+    price_stop: Optional[float] = None
+    price_limit_oco: Optional[float] = None
 
     def paid(self):
         if self.side == 'buy':
