@@ -7,11 +7,12 @@ from order import Order
 from trader import trader_agent
 from utils import get_market_base_and_quote
 
+CURRENCY_SAFETY_MARGIN = 0.995
+MINIMUM_ACCEPTED_PROFIT = 10
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-fh = logging.FileHandler('trianglelog.log')
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
+
 
 class Triangle:
     def __init__(self, main_token, secondary_token, base_token):
@@ -57,6 +58,7 @@ class Triangle:
             amount = min(amount, trader_agent.get_tradable_balance(self.base_token))
             tether_amount = trader_agent.get_tradable_balance(self.main_token) / float(a3.get('price'))
             tether_amount = min(tether_amount, trader_agent.get_tradable_balance(self.secondary_token))
+            tether_amount *= CURRENCY_SAFETY_MARGIN
             amount = min(amount, tether_amount / float(a2.get('price')))
 
             profit = profit_per_unit * amount
@@ -80,6 +82,7 @@ class Triangle:
             amount = min(amount, trader_agent.get_tradable_balance(self.base_token))
             rial_amount = trader_agent.get_tradable_balance(self.secondary_token) * float(b3.get('price'))
             rial_amount = min(rial_amount, trader_agent.get_tradable_balance(self.main_token))
+            rial_amount *= CURRENCY_SAFETY_MARGIN
             amount = min(amount, rial_amount / float(a1.get('price')))
 
             profit = profit_per_unit * amount
@@ -147,7 +150,7 @@ class TriangleCalculator:
                 )
 
                 order_set = [o1, o2, o3]
-                if res['expected_profit'] > 100:
+                if res['expected_profit'] > MINIMUM_ACCEPTED_PROFIT:
                     logger.info("Placing orders...")
                     trader_agent.place_order_set(order_set)
 
