@@ -11,3 +11,4 @@ market_update_delay = Histogram('market_update_delay_seconds',
                                 labelnames=['market'])
 proxy_requests = Counter('proxy_requests', "State of requests sent",
                          labelnames=['path', 'method', 'status_code', 'retry'])
+wallet_value = Gauge("wallet_value", "Amount of money in the wallet", labelnames=['currency'])

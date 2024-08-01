@@ -109,10 +109,19 @@ class BitpinProxy:
         path = '/v1/wlt/wallets/'
         resp = self._send_request(path, authenticated=True).json()
         wallet = {}
+
+        toman_value = 0
+        usdt_value = 0
+
         for token_info in resp["results"]:
             # logger.info("TOKEN INFO: %s", str(token_info))
             wallet[token_info['currency']['code']] = float(token_info['total'])
+            toman_value += float(token_info['value_total'])
+            usdt_value += float(token_info['usdt_value_total'])
             # TODO: there is also a 'frozen' key and a 'total' key, what are they?
+
+        metrics.wallet_value.labels(currency='toman').set(toman_value)
+        metrics.wallet_value.labels(currency='usdt').set(usdt_value)
         return wallet
 
     def place_order(
