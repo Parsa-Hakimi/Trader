@@ -9,3 +9,5 @@ order_placement_duration = Summary("order_duration", "Duration of order placemen
 market_update_delay = Histogram('market_update_delay_seconds',
                                 'Delay of market update messages arriving in the websocket',
                                 labelnames=['market'])
+proxy_requests = Counter('proxy_requests', "State of requests sent",
+                         labelnames=['path', 'method', 'status_code', 'retry'])
