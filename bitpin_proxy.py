@@ -134,7 +134,7 @@ class BitpinProxy:
             identifier=None,
     ):
         logger.info("Posting order")
-        if mode != 'limit':
+        if mode not in ['limit', 'market']:
             raise NotImplementedError
 
         url = '/v1/odr/orders/'
@@ -143,13 +143,16 @@ class BitpinProxy:
             'amount1': round(base_amount, 9),
             # 'amount2': 0,
             'price': round(price, 9),
-            'mode': 'limit',
+            'mode': mode,
             'type': side,
             # 'identifier': '',  # TODO: we may need this later
             'price_limit': round(price, 9),
             # 'price_stop': 0,
             # 'price_limit_oco': 0,
         }
+
+        if mode == 'market':
+            payload.pop('price_limit')
 
         if identifier is not None:
             payload['identifier'] = identifier

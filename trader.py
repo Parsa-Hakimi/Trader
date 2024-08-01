@@ -60,6 +60,7 @@ class TraderAgent:
             price=order.price,
             side=order.side,
             identifier=order.identifier,
+            mode='market',  # Testing market mode to prevent open orders
         )
         # TODO: Check order is placed
 
