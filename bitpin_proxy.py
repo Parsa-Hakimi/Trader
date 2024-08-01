@@ -4,6 +4,7 @@ from typing import Literal
 
 import requests
 
+import metrics
 from utils import get_market_base_and_quote
 from order import Order
 
@@ -38,6 +39,8 @@ class BitpinProxy:
         resp = request_method(url, json=body, headers=headers)
         logger.info("Response received [%d]: %s", resp.status_code, resp.text[:120])
 
+        metrics.proxy_requests.labels(path=path, method=method, status_code=resp.status_code, retry=0).inc()
+
         if resp.status_code == 429 and base_url.endswith('org'):
             self._send_request(path, method, body, authenticated, base_url.replace('.org', '.ir'))
 
@@ -51,6 +54,7 @@ class BitpinProxy:
             resp = request_method(url, json=body, headers=headers)
             logger.info("Response received [%d]: %s", resp.status_code, resp.text[:120])
             retries += 1
+            metrics.proxy_requests.labels(path=path, method=method, status_code=resp.status_code, retry=retries).inc()
 
         return resp
 
