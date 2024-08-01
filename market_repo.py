@@ -1,4 +1,5 @@
 import json
+import logging
 from collections import defaultdict
 from datetime import datetime
 
@@ -11,6 +12,8 @@ from utils import MARKET_MAPPING
 BITPIN_WS_ADDR = 'wss://ws.bitpin.org'
 
 websocket.setdefaulttimeout(20)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class MarketRepository:
@@ -123,6 +126,7 @@ class MarketRepository:
                 event_time = event_time[:-1]
 
             event_delay = (datetime.fromisoformat(event_time) - datetime.now()).total_seconds()
+            logger.info("Event delay: %f", event_delay)
             metrics.market_update_delay.labels(market=data['market']['code']).observe(event_delay)
 
         market_id = int(data['market']['id'])
