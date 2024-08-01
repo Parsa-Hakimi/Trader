@@ -123,9 +123,11 @@ class BitpinProxy:
             side: Literal['buy', 'sell'],
             mode='limit',
             identifier=None,
+            price_stop: float | None=None,
+            price_limit_oco: float | None=None,
     ):
         logger.info("Posting order")
-        if mode != 'limit':
+        if mode not in ['limit', 'oco']:
             raise NotImplementedError
 
         url = '/v1/odr/orders/'
@@ -134,7 +136,7 @@ class BitpinProxy:
             'amount1': round(base_amount, 9),
             # 'amount2': 0,
             'price': price,
-            'mode': 'limit',
+            'mode': mode,
             'type': side,
             # 'identifier': '',  # TODO: we may need this later
             'price_limit': price,
@@ -144,6 +146,10 @@ class BitpinProxy:
 
         if identifier is not None:
             payload['identifier'] = identifier
+
+        if mode == 'oco':
+            payload['price_stop'] = price_stop
+            payload['price_limit_oco'] = price_limit_oco
 
         resp = self._send_request(url, method='post', body=payload, authenticated=True)
 
