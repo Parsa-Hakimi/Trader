@@ -125,7 +125,7 @@ class MarketRepository:
             if event_time[-1] == 'Z':
                 event_time = event_time[:-1]
 
-            event_delay = (datetime.fromisoformat(event_time) - datetime.now()).total_seconds()
+            event_delay = (datetime.now() - datetime.fromisoformat(event_time)).total_seconds()
             logger.info("Event delay: %f", event_delay)
             metrics.market_update_delay.labels(market=data['market']['code']).observe(event_delay)
 
