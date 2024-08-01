@@ -133,11 +133,11 @@ class BitpinProxy:
             'market': market_id,
             'amount1': round(base_amount, 9),
             # 'amount2': 0,
-            'price': price,
+            'price': round(price, 9),
             'mode': 'limit',
             'type': side,
             # 'identifier': '',  # TODO: we may need this later
-            'price_limit': price,
+            'price_limit': round(price, 9),
             # 'price_stop': 0,
             # 'price_limit_oco': 0,
         }
