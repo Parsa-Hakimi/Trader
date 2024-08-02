@@ -171,7 +171,7 @@ class TraderAgent(Actor):
         for oo in self.open_orders:
             if oo.market[0] in order_set_tokens or oo.market[1] in order_set_tokens:
                 logger.info('There is already an open order for the base token :(')
-                # return False  # Skip for now...
+                return False  # Skip for now...
 
         for order in order_set:
             token, amount = order.paid()
