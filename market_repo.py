@@ -12,7 +12,6 @@ from utils import MARKET_MAPPING
 BITPIN_WS_ADDR = 'wss://ws.bitpin.org'
 
 websocket.setdefaulttimeout(20)
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

@@ -10,7 +10,6 @@ from utils import get_market_base_and_quote
 CURRENCY_SAFETY_MARGIN = 0.995
 MINIMUM_ACCEPTED_PROFIT = 10
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

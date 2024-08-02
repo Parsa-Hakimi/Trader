@@ -8,7 +8,6 @@ from bitpin_proxy import bitpin_proxy
 from order import Order
 from utils import MARKET_MAPPING
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
