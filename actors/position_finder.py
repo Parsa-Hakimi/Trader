@@ -38,6 +38,12 @@ class PositionFinder(Actor):
             self.busy = True
             self.run_in_background(self.calculate, args=(message.market_id,))
 
+    @switch.message(type=WalletData)
+    def handle_wallet_data(self, sender: Address, message: WalletData):
+        logger.info("Handling wallet update: %s", str(message.wallet))
+        self._wallet_data = message
+
+
     @switch.background_task_exited(exception=None)
     def calc_done(self):
         logger.info("bg task done")
