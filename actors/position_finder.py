@@ -49,13 +49,12 @@ class PositionFinder(Actor):
         self.try_running_queued_tasks()
 
     def try_running_queued_tasks(self):
-        self.market_update_count += 1
         if self.market_update_count % 50 == 0:
             try:
                 self.tell(self.trader_agent, UpdateOrdersAndWallet())
             except:
                 pass
-
+        self.market_update_count += 1
         if self.queued_markets:
             market_id = self.queued_markets.pop()
             logger.info("running another")
