@@ -21,7 +21,7 @@ def run():
     trader_agent = system.spawn(actor=TraderAgent())
     position_finder = system.spawn(actor=PositionFinder(trader_agent=trader_agent))
     market_actor = system.spawn(actor=MarketHandler(position_finder=position_finder, trader_agent=trader_agent), key='market')
-    time.sleep(2)
+    time.sleep(5)
 
     system.tell(market_actor, Start())
 

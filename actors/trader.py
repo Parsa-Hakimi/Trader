@@ -93,11 +93,13 @@ class TraderAgent(Actor):
 
     @switch.message(type=UpdateOrdersAndWallet)
     def handle_update_orders_and_wallet(self, sender: Address, message: UpdateOrdersAndWallet):
+        logger.info("Handling UpdateOrdersAndWallet message")
         self.update_orders_and_wallet()
         self.tell(sender, message=WalletData(open_orders=self.open_orders.copy(), wallet=self.wallet.copy()))
 
     @switch.message(type=PlaceOrderSet)
     def handle_place_order_set(self, sender: Address, message: PlaceOrderSet):
+        logger.info("Handling PlaceOrderSet message")
         self.place_order_set(message.order_set)
         self.tell(sender, message=WalletData(open_orders=self.open_orders.copy(), wallet=self.wallet.copy()))
 
