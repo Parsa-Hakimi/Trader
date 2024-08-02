@@ -90,14 +90,14 @@ class MarketRepository:
         return self.market_prices[market_id].get('best_bid')
 
     def run(self):
-        print("Running market repo")
+        # print("Running market repo")
         self.ws.run_forever(
             ping_interval=10,
             ping_payload='{ "message" : "PING"}'
         )
 
     def _on_message(self, ws, message):
-        print(f"Received message: {message[:50]}")
+        # print(f"Received message: {message[:50]}")
         data = json.loads(message)
         match data.get("event"):
             case "market_update":
@@ -106,15 +106,16 @@ class MarketRepository:
             #     self.handle_currency_price_info_update_event(data)
 
     def _on_error(self, ws, error: Exception):
-        print(f"Encountered error: {error}")
+        # print(f"Encountered error: {error}")
         import traceback
         traceback.print_exception(error)
 
     def _on_close(self, ws, close_status_code, close_msg):
-        print("Connection closed")
+        # print("Connection closed")
+        pass
 
     def _on_open(self, ws):
-        print("Connection opened")
+#         print("Connection opened")
         self.ws.send(f'{{"method":"sub_to_market_list", "ids":[{",".join(str(i) for i in MARKET_MAPPING.values())}]}}')
 
     def handle_market_update_event(self, data):
@@ -133,7 +134,7 @@ class MarketRepository:
         sorted_asks = sorted(data['sell'], key=lambda order: float(order['price']))
         updated = False
         if self.market_prices.get(market_id, {}).get('best_bid') != sorted_bids[0]:
-            print(f'new best bid: \n{self.market_prices.get(market_id, {}).get("best_bid")} \n{sorted_bids[0]}')
+            # print(f'new best bid: \n{self.market_prices.get(market_id, {}).get("best_bid")} \n{sorted_bids[0]}')
             best_bid: dict = sorted_bids[0].copy()
             best_bid['update_time'] = datetime.now()
             self.market_prices[market_id]['best_bid'] = best_bid
@@ -142,7 +143,7 @@ class MarketRepository:
                 float(best_bid.get('remain')))
             updated = True
         if self.market_prices.get(market_id, {}).get('best_ask') != sorted_asks[0]:
-            print(f'new best ask: \n{self.market_prices.get(market_id, {}).get("best_ask")} \n{sorted_asks[0]}')
+            # print(f'new best ask: \n{self.market_prices.get(market_id, {}).get("best_ask")} \n{sorted_asks[0]}')
             best_ask: dict = sorted_asks[0].copy()
             best_ask['update_time'] = datetime.now()
             self.market_prices[market_id]['best_ask'] = best_ask

@@ -32,15 +32,15 @@ class Triangle:
         # print(f"LOOP2 {p2 * p3 - 1. / p1} {self.main_token}->{self.token1}={p1} {self.token1}->{self.token2}={p2} {self.token2}->{self.main_token}={p3}")
         # print(f"LOOP3 {p1 * p3 - 1. / p2} {self.main_token}->{self.token1}={p1} {self.token1}->{self.token2}={p2} {self.token2}->{self.main_token}={p3}")
 
-        print(f"=============={self.base_token}==============")
-        print(p1 * p2 * p3)
+        # print(f"=============={self.base_token}==============")
+        # print(p1 * p2 * p3)
         profit = abs((p1 * p2) * p3 - 1)
-        if profit > 1e-6:
-            print(
-                f"PROFIT! {profit * 1e6} {self.main_token}->{self.secondary_token}={p1} {self.secondary_token}->{self.base_token}={p2} {self.base_token}->{self.main_token}={p3}")
-        else:
-            print(
-                f"NONPROFIT! {profit * 1e6} {self.main_token}->{self.secondary_token}={p1} {self.secondary_token}->{self.base_token}={p2} {self.base_token}->{self.main_token}={p3}")
+        # if profit > 1e-6:
+        #     print(
+        #         f"PROFIT! {profit * 1e6} {self.main_token}->{self.secondary_token}={p1} {self.secondary_token}->{self.base_token}={p2} {self.base_token}->{self.main_token}={p3}")
+        # else:
+        #     print(
+        #         f"NONPROFIT! {profit * 1e6} {self.main_token}->{self.secondary_token}={p1} {self.secondary_token}->{self.base_token}={p2} {self.base_token}->{self.main_token}={p3}")
 
     def get_profit_ask_bid(self, market_repo: MarketRepository):
         a1 = market_repo.get_market_ask(self.base_token, self.main_token)
