@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 class PositionFinder(Actor):
     trader_agent: Address
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, trader_agent: Address):
+        self.trader_agent = trader_agent
         self._wallet_data = WalletData([], {})
         self.busy = False
         self.queued_markets = SetStack()  # Use stack to handle most updated markets first, maybe we need to change that
