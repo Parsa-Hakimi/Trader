@@ -4,7 +4,7 @@ from typing import List
 
 from market_repo import MarketRepository
 from order import Order
-from trader import trader_agent
+from actors.trader import trader_agent
 from utils import get_market_base_and_quote
 
 CURRENCY_SAFETY_MARGIN = 0.995

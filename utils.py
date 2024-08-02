@@ -24,3 +24,26 @@ MARKET_MAPPING = {
     ('DOGE', 'IRT'): 62,
     ('DOGE', 'USDT'): 63,
 }
+
+
+class SetStack:
+    def __init__(self):
+        self.set = set()
+        self.stack = []
+
+    def add(self, value):
+        if value not in self.set:
+            self.set.add(value)
+            self.stack.append(value)
+        else:
+            self.stack.remove(value)
+            self.stack.append(value)
+
+    def pop(self):
+        if len(self.stack) > 0:
+            value = self.stack.pop()
+            self.set.remove(value)
+            return value
+
+    def __len__(self):
+        return len(self.stack)
