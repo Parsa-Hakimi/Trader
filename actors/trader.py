@@ -127,9 +127,13 @@ class TraderAgent(Actor):
             self.db.connection.commit()
 
     def update_orders_and_wallet(self, initial=False):
-        if not initial:
-            for order in self.open_orders:
-                self.check_old_open_order(order)
+        try:
+            if not initial:
+                for order in self.open_orders:
+                    self.check_old_open_order(order)
+        except Exception as error:
+            import traceback
+            traceback.print_exception(error)
 
         self.open_orders = bitpin_proxy.get_my_orders()
         self.wallet.clear()
