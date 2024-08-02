@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @use_switch
+@dataclass
 class PositionFinder(Actor):
     trader_agent: Address
 
