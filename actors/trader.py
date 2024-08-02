@@ -51,8 +51,16 @@ class TraderAgent(Actor):
     def __init__(self):
         self.open_orders = []
         self.wallet = defaultdict(float)
-        self.db = sqlite3.connect('orders.db').cursor()
-        self.db.execute("CREATE TABLE IF NOT EXISTS orders ("
+        self._db = None
+        self.update_orders_and_wallet(initial=True)
+
+    @property
+    def db(self):
+        if self._db:
+            return self._db
+
+        self._db = sqlite3.connect('orders.db').cursor()
+        self._db.execute("CREATE TABLE IF NOT EXISTS orders ("
                         "identifier TEXT PRIMARY KEY,"
                         "market0 TEXT,"
                         "market1 TEXT,"
@@ -63,7 +71,7 @@ class TraderAgent(Actor):
                         "created_at TEXT,"
                         "order_set_id TEXT"
                         ");")
-        self.db.execute("CREATE TABLE IF NOT EXISTS done_orders ("
+        self._db.execute("CREATE TABLE IF NOT EXISTS done_orders ("
                         "identifier TEXT PRIMARY KEY,"
                         "market0 TEXT,"
                         "market1 TEXT,"
@@ -81,7 +89,7 @@ class TraderAgent(Actor):
                         "exchanged2 REAL,"
                         "created_at TEXT,"
                         "closed_at TEXT);")
-        self.update_orders_and_wallet()
+        return self._db
 
     @switch.message(type=UpdateOrdersAndWallet)
     def handle_update_orders_and_wallet(self, sender: Address, message: UpdateOrdersAndWallet):
@@ -117,9 +125,10 @@ class TraderAgent(Actor):
             )
             self.db.execute(f"INSERT INTO done_orders VALUES(" + ",".join(["?"] * len(params)) + ")", params)
 
-    def update_orders_and_wallet(self):
-        for order in self.open_orders:
-            self.check_old_open_order(order)
+    def update_orders_and_wallet(self, initial=False):
+        if not initial:
+            for order in self.open_orders:
+                self.check_old_open_order(order)
 
         self.open_orders = bitpin_proxy.get_my_orders()
         self.wallet.clear()
