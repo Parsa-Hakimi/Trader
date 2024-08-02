@@ -43,7 +43,6 @@ class PositionFinder(Actor):
         logger.info("Handling wallet update: %s", str(message.wallet))
         self._wallet_data = message
 
-
     @switch.background_task_exited(exception=None)
     def calc_done(self):
         logger.info("bg task done")
@@ -66,7 +65,9 @@ class PositionFinder(Actor):
 
     @switch.background_task_exited(exception=Exception)
     def calc_done_exc(self, exception: Exception):
-        logger.info("bg task done with exception %s", exception)
+        logger.exception("bg task done with exception %s", exception, exc_info=exception)
+        import traceback
+        traceback.print_exception(exception)
         self.try_running_queued_tasks()
 
     def calculate(self, market_id: int):
