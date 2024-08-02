@@ -124,6 +124,7 @@ class TraderAgent(Actor):
                 order.extra["closed_at"],
             )
             self.db.execute(f"INSERT INTO done_orders VALUES(" + ",".join(["?"] * len(params)) + ")", params)
+            self.db.connection.commit()
 
     def update_orders_and_wallet(self, initial=False):
         if not initial:
@@ -171,6 +172,7 @@ class TraderAgent(Actor):
             order.identifier, order.market[0], order.market[1], f"{order.market[0]}_{order.market[1]}", order.side,
             order.amount, order.price, datetime.now().isoformat(), order_set_id)
         self.db.execute(f"INSERT INTO orders VALUES(" + ",".join(["?"] * len(params)) + ")", params)
+        self.db.connection.commit()
 
     def verify_order_set(self, order_set: List[Order]) -> bool:
         logger.info('Verifying orders: %s', str(order_set))
