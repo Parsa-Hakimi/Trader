@@ -92,9 +92,19 @@ class BitpinProxy:
 
         return self._send_request(url_tmpl).json()
 
-    def get_my_open_orders(self):
+    def get_my_orders(self, active=True, identifier=None):
+        path = '/v1/odr/orders/'
+        queries = []
+        if active:
+            queries.append('state=active')
+        if identifier:
+            queries.append(f'identifier={identifier}')
+
+        if queries:
+            path += '?' + '&'.join(queries)
+
         orders = []
-        resp = self._send_request('/v1/odr/orders/?state=active', authenticated=True).json()
+        resp = self._send_request(path, authenticated=True).json()
         for order in resp['results']:
             orders.append(Order(
                 market=get_market_base_and_quote(order['market']['id']),
@@ -102,6 +112,7 @@ class BitpinProxy:
                 amount=float(order['remain_amount']),
                 price=float(order['price']),
                 side=order['type'],
+                extra=order,
             ))
         return orders
 

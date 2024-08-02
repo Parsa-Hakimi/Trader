@@ -10,7 +10,8 @@ from market_repo import MarketRepository
 @use_switch
 @dataclass
 class MarketHandler(Actor):
-    trader: Address
+    position_finder: Address
+    trader_agent: Address
 
     @switch.message(type=Start)
     def handle_start(self, sender: Address, message: Start):
@@ -27,4 +28,4 @@ class MarketHandler(Actor):
 
     def market_updated(self, market_repo, market_id):
         logger.info("MARKET UPDATED: %s", str(market_id))
-        self.tell(self.trader, MarketUpdate(self.market_repo.only_data(), market_id=market_id))
+        self.tell(self.position_finder, MarketUpdate(self.market_repo.only_data(), market_id=market_id))

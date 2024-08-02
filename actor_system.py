@@ -10,6 +10,7 @@ from twisted.web.server import Site
 
 from actors.market_handler import MarketHandler
 from actors.position_finder import PositionFinder
+from actors.trader import TraderAgent
 from messages import Start
 
 logger = logging.getLogger(__name__)
@@ -17,8 +18,9 @@ logger = logging.getLogger(__name__)
 
 def run():
     system = ActorSystem(n_nodes=4)
-    trader = system.spawn(actor=PositionFinder())
-    market_actor = system.spawn(actor=MarketHandler(trader=trader), key='market')
+    trader_agent = system.spawn(actor=TraderAgent())
+    position_finder = system.spawn(actor=PositionFinder(trader_agent=trader_agent))
+    market_actor = system.spawn(actor=MarketHandler(position_finder=position_finder, trader_agent=trader_agent), key='market')
     time.sleep(2)
 
     system.tell(market_actor, Start())

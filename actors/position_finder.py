@@ -1,15 +1,23 @@
-from lyrid import use_switch, Actor, switch, Address
+from dataclasses import dataclass
+from typing import List
+
+from lyrid import use_switch, Actor, switch, Address, Message
 
 import metrics
 from actor_system import logger
 from messages import MarketUpdate
+from order import Order
 from utils import SetStack
-from actors.trader import trader_agent
+from actors.trader import UpdateOrdersAndWallet, PlaceOrderSet, WalletData
 
 
 @use_switch
 class PositionFinder(Actor):
-    def __init__(self):
+    trader_agent: Address
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._wallet_data = WalletData([], {})
         self.busy = False
         self.queued_markets = SetStack()  # Use stack to handle most updated markets first, maybe we need to change that
         self.latest_market_data = None
@@ -34,9 +42,9 @@ class PositionFinder(Actor):
 
     def try_running_queued_tasks(self):
         self.market_update_count += 1
-        if self.market_update_count % 25 == 0:
+        if self.market_update_count % 50 == 0:
             try:
-                trader_agent.update_orders_and_wallet()
+                self.tell(self.trader_agent, UpdateOrdersAndWallet())
             except:
                 pass
 
@@ -54,5 +62,12 @@ class PositionFinder(Actor):
 
     def calculate(self, market_id: int):
         from calculator import TriangleCalculator
+
         with metrics.calc_duration.time():
-            TriangleCalculator().calculate(self.latest_market_data, market_id=market_id)
+            TriangleCalculator(owner=self).calculate(self.latest_market_data, market_id=market_id)
+
+    def place_order_set(self, order_set):
+        self.tell(self.trader_agent, PlaceOrderSet(order_set))
+
+    def wallet_data(self):
+        return self._wallet_data

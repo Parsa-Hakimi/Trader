@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple, Literal, Optional
+from typing import Tuple, Literal, Optional, Dict
 
 
 @dataclass
@@ -9,6 +9,7 @@ class Order:
     amount: float
     price: float
     identifier: Optional[str] = None
+    extra: Optional[Dict] = None
 
     def paid(self):
         if self.side == 'buy':

@@ -2,9 +2,10 @@ import csv
 import logging
 from typing import List
 
+from actors.position_finder import PositionFinder
+from actors.trader import WalletData
 from market_repo import MarketRepository
 from order import Order
-from actors.trader import trader_agent
 from utils import get_market_base_and_quote
 
 CURRENCY_SAFETY_MARGIN = 0.995
@@ -44,7 +45,7 @@ class Triangle:
         #     print(
         #         f"NONPROFIT! {profit * 1e6} {self.main_token}->{self.secondary_token}={p1} {self.secondary_token}->{self.base_token}={p2} {self.base_token}->{self.main_token}={p3}")
 
-    def get_profit_ask_bid(self, market_repo: MarketRepository):
+    def get_profit_ask_bid(self, market_repo: MarketRepository, wallet_data: WalletData):
         a1 = market_repo.get_market_ask(self.base_token, self.main_token)
         a2 = market_repo.get_market_ask(self.base_token, self.secondary_token)
         a3 = market_repo.get_market_ask(self.secondary_token, self.main_token)
@@ -56,9 +57,9 @@ class Triangle:
             profit_per_unit = float(b1.get('price')) - float(a2.get('price')) * float(a3.get('price'))
             amount = min(float(b1.get('remain')), float(a2.get('remain')))
 
-            amount = min(amount, trader_agent.get_tradable_balance(self.base_token))
-            tether_amount = trader_agent.get_tradable_balance(self.main_token) / float(a3.get('price'))
-            tether_amount = min(tether_amount, trader_agent.get_tradable_balance(self.secondary_token))
+            amount = min(amount, wallet_data.get_tradable_balance(self.base_token))
+            tether_amount = wallet_data.get_tradable_balance(self.main_token) / float(a3.get('price'))
+            tether_amount = min(tether_amount, wallet_data.get_tradable_balance(self.secondary_token))
             tether_amount *= CURRENCY_SAFETY_MARGIN
             amount = min(amount, tether_amount / float(a2.get('price')))
 
@@ -80,9 +81,9 @@ class Triangle:
             profit_per_unit = -float(a1.get('price')) + float(b2.get('price')) * float(b3.get('price'))
             amount = min(float(a1.get('remain')), float(b2.get('remain')))
 
-            amount = min(amount, trader_agent.get_tradable_balance(self.base_token))
-            rial_amount = trader_agent.get_tradable_balance(self.secondary_token) * float(b3.get('price'))
-            rial_amount = min(rial_amount, trader_agent.get_tradable_balance(self.main_token))
+            amount = min(amount, wallet_data.get_tradable_balance(self.base_token))
+            rial_amount = wallet_data.get_tradable_balance(self.secondary_token) * float(b3.get('price'))
+            rial_amount = min(rial_amount, wallet_data.get_tradable_balance(self.main_token))
             rial_amount *= CURRENCY_SAFETY_MARGIN
             amount = min(amount, rial_amount / float(a1.get('price')))
 
@@ -102,7 +103,7 @@ class Triangle:
 
 
 class TriangleCalculator:
-    def __init__(self):
+    def __init__(self, owner: PositionFinder):
         self.log_file = open('log_file.csv', mode='a')
         self.triangles = [
             Triangle('IRT', 'USDT', 'NOT'),
@@ -111,10 +112,12 @@ class TriangleCalculator:
             Triangle('IRT', 'USDT', 'BTC'),
             Triangle('IRT', 'USDT', 'ETH'),
         ]
+        self.owner = owner
 
     def calculate(self, market_repo: MarketRepository, **kwargs):
         logger.info("Calculating triangles")
         writer = csv.writer(self.log_file)
+        wallet_data = self.owner.wallet_data()
         for triangle in self.triangles:
             logger.info("Checking triangle (%s)", " -> ".join(triangle.tokens))
             market_id = kwargs.get('market_id')
@@ -124,7 +127,7 @@ class TriangleCalculator:
                     if market_sides[0] not in triangle.tokens or market_sides[1] not in triangle.tokens:
                         logger.info("Sides not in market update, skipping.")
                         continue
-            res = triangle.get_profit_ask_bid(market_repo)
+            res = triangle.get_profit_ask_bid(market_repo, wallet_data)
 
             if res is not None:
                 logger.info("Profitable trade: %s", str(res))
@@ -153,7 +156,7 @@ class TriangleCalculator:
                 order_set = [o1, o2, o3]
                 if res['expected_profit'] > MINIMUM_ACCEPTED_PROFIT:
                     logger.info("Placing orders...")
-                    trader_agent.place_order_set(order_set)
+                    self.owner.place_order_set(order_set)
 
                 writer.writerow(res.values())
 
