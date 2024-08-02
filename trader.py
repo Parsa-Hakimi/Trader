@@ -7,6 +7,7 @@ import metrics
 from bitpin_proxy import bitpin_proxy
 from order import Order
 from utils import MARKET_MAPPING
+logging.basicConfig(level=logging.INFO,  format='%(asctime)s %(message)s')
 
 logger = logging.getLogger(__name__)
 
