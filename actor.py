@@ -13,7 +13,6 @@ import metrics
 from market_repo import MarketRepository
 from trader import trader_agent
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
