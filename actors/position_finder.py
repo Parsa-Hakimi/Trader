@@ -1,14 +1,16 @@
+import logging
 from dataclasses import dataclass
 from typing import List
 
 from lyrid import use_switch, Actor, switch, Address, Message
 
 import metrics
-from actor_system import logger
 from messages import MarketUpdate
 from order import Order
 from utils import SetStack
 from actors.trader import UpdateOrdersAndWallet, PlaceOrderSet, WalletData
+
+logger = logging.getLogger(__name__)
 
 
 @use_switch
