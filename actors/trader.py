@@ -103,25 +103,25 @@ class TraderAgent(Actor):
 
     def check_old_open_order(self, order: Order):
         resp = bitpin_proxy.get_my_orders(active=False, identifier=order.identifier)
-        if resp and resp["state"] == "closed":
+        if resp and resp[0].extra["state"] == "closed":
             params = (
                 order.identifier,
                 order.market[0],
                 order.market[1],
-                order.extra['market']['code'],
+                resp[0].extra['market']['code'],
                 order.side,
-                float(order.extra.get("amount1") or -1),
-                float(order.extra.get("amount2") or -1),
-                float(order.extra.get("price") or -1),
-                float(order.extra.get("expected_gain") or -1),
-                float(order.extra.get("expected_resource") or -1),
-                float(order.extra.get("average_price") or -1),
-                float(order.extra.get("gain") or -1),
-                float(order.extra.get("resource") or -1),
-                float(order.extra.get("exchanged1") or -1),
-                float(order.extra.get("exchanged2") or -1),
-                order.extra.get("created_at") or "?",
-                order.extra.get("closed_at") or "?",
+                float(resp[0].extra.get("amount1") or -1),
+                float(resp[0].extra.get("amount2") or -1),
+                float(resp[0].extra.get("price") or -1),
+                float(resp[0].extra.get("expected_gain") or -1),
+                float(resp[0].extra.get("expected_resource") or -1),
+                float(resp[0].extra.get("average_price") or -1),
+                float(resp[0].extra.get("gain") or -1),
+                float(resp[0].extra.get("resource") or -1),
+                float(resp[0].extra.get("exchanged1") or -1),
+                float(resp[0].extra.get("exchanged2") or -1),
+                resp[0].extra.get("created_at") or "?",
+                resp[0].extra.get("closed_at") or "?",
             )
             self.db.execute(f"INSERT INTO done_orders VALUES(" + ",".join(["?"] * len(params)) + ")", params)
             self.db.connection.commit()
