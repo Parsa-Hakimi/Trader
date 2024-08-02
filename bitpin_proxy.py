@@ -12,6 +12,7 @@ BITPIN_URL = 'https://api.bitpin.org'
 BITPIN_API_KEY = os.environ.get('BITPIN_API_KEY')
 BITPIN_SECRET_KEY = os.environ.get('BITPIN_SECRET_KEY')
 
+logging.basicConfig(level=logging.INFO,  format='%(asctime)s %(message)s')
 logger = logging.getLogger(__name__)
 
 
