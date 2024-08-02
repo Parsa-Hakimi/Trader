@@ -1,10 +1,12 @@
+import logging
 from dataclasses import dataclass
 
 from lyrid import use_switch, Actor, Address, switch
 
-from actor_system import logger
 from messages import Start, MarketUpdate
 from market_repo import MarketRepository
+
+logger = logging.getLogger(__name__)
 
 
 @use_switch
