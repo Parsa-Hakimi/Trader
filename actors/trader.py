@@ -1,4 +1,5 @@
 import logging
+import time
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass
@@ -122,20 +123,22 @@ class TraderAgent(Actor):
                 orders_placed = True
 
         if orders_placed:
+            time.sleep(1)  # :|
             self.update_orders_and_wallet()
 
     def _place_order(self, order: Order, order_set: OrderSet):
         logger.info('Placing order: %s', str(order))
         order.identifier = str(uuid.uuid4())
 
-        bitpin_proxy.place_order(
-            market_id=MARKET_MAPPING.get(order.market),
-            base_amount=order.amount,
-            price=order.price,
-            side=order.side,
-            identifier=order.identifier,
-            mode='market',  # Testing market mode to prevent open orders
-        )
+        self.run_in_background(
+            bitpin_proxy.place_order, args=(
+                MARKET_MAPPING.get(order.market),
+                order.amount,
+                order.price,
+                order.side,
+                'market',  # Testing market mode to prevent open orders
+                order.identifier,
+            ))
         # TODO: Check order is placed
 
         self.open_orders.append(order)
