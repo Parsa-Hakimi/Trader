@@ -1,5 +1,5 @@
 import logging
-from db import *
+# from db import *
 
 # import logging_loki
 #
@@ -10,8 +10,8 @@ from db import *
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', force=True)
 
 if __name__ == '__main__':
-    db.connect()
-    db.create_tables([OrderSet, Order, OrderResult, MarketData])
+    # db.connect()
+    # db.create_tables([OrderSet, Order, OrderResult, MarketData])
     import actor_system
 
     actor_system.run()

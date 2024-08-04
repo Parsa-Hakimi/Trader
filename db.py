@@ -6,7 +6,7 @@ DB_HOST = os.environ.get('DB_HOST', 'localhost:5432')
 DB_USER = os.environ.get('DB_USER', 'postgres')
 DB_PASS = os.environ.get('DB_PASS', 'postgres')
 DB_NAME = os.environ.get('DB_NAME', 'trader')
-db = PostgresqlDatabase(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
+db = PostgresqlDatabase(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}', autoconnect=True)
 
 
 class OrderSet(Model):

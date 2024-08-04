@@ -10,7 +10,7 @@ from lyrid import Actor, use_switch, switch, Message, Address
 
 import metrics
 from bitpin_proxy import bitpin_proxy
-from db import db, Order as DBOrder, OrderSet, OrderResult
+from db import Order as DBOrder, OrderSet, OrderResult, db
 from order import Order
 from utils import MARKET_MAPPING
 
@@ -52,30 +52,25 @@ class TraderAgent(Actor):
     def __init__(self):
         self.open_orders = []
         self.wallet = defaultdict(float)
-        self.db_initialized = False
         self.update_orders_and_wallet(initial=True)
-
-    def check_db_initialized(self):
-        if not self.db_initialized:
-            db.connect(reuse_if_open=True)
-            self.db_initialized = True
 
     @switch.message(type=UpdateOrdersAndWallet)
     def handle_update_orders_and_wallet(self, sender: Address, message: UpdateOrdersAndWallet):
         logger.info("Handling UpdateOrdersAndWallet message")
-        self.update_orders_and_wallet()
+        with db:
+            self.update_orders_and_wallet()
         self.tell(sender, message=WalletData(open_orders=self.open_orders.copy(), wallet=self.wallet.copy()))
 
     @switch.message(type=PlaceOrderSet)
     def handle_place_order_set(self, sender: Address, message: PlaceOrderSet):
         logger.info("Handling PlaceOrderSet message")
-        self.place_order_set(message.order_set)
+        with db:
+            self.place_order_set(message.order_set)
         self.tell(sender, message=WalletData(open_orders=self.open_orders.copy(), wallet=self.wallet.copy()))
 
     def check_old_open_order(self, order: Order):
         resp = bitpin_proxy.get_my_orders(active=False, identifier=order.identifier)
         if resp and resp[0].extra["state"] == "closed":
-            self.check_db_initialized()
             db_order = DBOrder.get(DBOrder.identifier == order.identifier)
             order_result = OrderResult(
                 order=db_order,
@@ -115,7 +110,6 @@ class TraderAgent(Actor):
         orders_placed = False
         with metrics.order_placement_duration.time():
             if self.verify_order_set(order_set):
-                self.check_db_initialized()
                 db_order_set = OrderSet(base_tokens=_get_order_set_base_tokens(order_set))
                 db_order_set.save()
 

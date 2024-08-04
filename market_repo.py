@@ -33,13 +33,6 @@ class MarketRepository:
         if u:
             self.update_by_order_list()
 
-        self.db_initialized = False
-
-    def check_db_initialized(self):
-        if not self.db_initialized:
-            db.connect(reuse_if_open=True)
-            self.db_initialized = True
-
     def only_data(self):
         m = MarketRepository()
         m.data = self.data
@@ -111,7 +104,8 @@ class MarketRepository:
         data = json.loads(message)
         match data.get("event"):
             case "market_update":
-                self.handle_market_update_event(data)
+                with db:
+                    self.handle_market_update_event(data)
             # case "currency_price_info_update":
             #     self.handle_currency_price_info_update_event(data)
 
@@ -130,8 +124,6 @@ class MarketRepository:
 
     def handle_market_update_event(self, data):
         event_time = data.get('event_time')
-
-        self.check_db_initialized()
 
         if event_time:
             if event_time[-1] == 'Z':
