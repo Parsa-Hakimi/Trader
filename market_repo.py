@@ -145,10 +145,16 @@ class MarketRepository:
         sorted_asks = sorted(data['sell'], key=lambda order: float(order['price']))
         updated = False
 
-        market_data = MarketData(market_id=market_id,
-                                 market_code=data['market']['code'],
-                                 update_date=datetime.fromisoformat(event_time),
-                                 received_at=datetime.now())
+        market_data = MarketData(
+            market_id=market_id,
+            market_code=data['market']['code'],
+            update_date=datetime.fromisoformat(event_time),
+            received_at=datetime.now(),
+            best_bid_price=self.market_prices.get(market_id, {}).get('best_bid', {}).get('price', -1),
+            best_bid_amount=self.market_prices.get(market_id, {}).get('best_bid', {}).get('amount', -1),
+            best_ask_price=self.market_prices.get(market_id, {}).get('best_ask', {}).get('price', -1),
+            best_ask_amount=self.market_prices.get(market_id, {}).get('best_ask', {}).get('amount', -1)
+        )
 
         if self.market_prices.get(market_id, {}).get('best_bid') != sorted_bids[0]:
             # print(f'new best bid: \n{self.market_prices.get(market_id, {}).get("best_bid")} \n{sorted_bids[0]}')
