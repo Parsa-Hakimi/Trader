@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def run():
-    system = ActorSystem(n_nodes=4)
+    system = ActorSystem(n_nodes=8)
     trader_agent = system.spawn(actor=TraderAgent())
     position_finder = system.spawn(actor=PositionFinder(trader_agent=trader_agent))
     market_actor = system.spawn(actor=MarketHandler(position_finder=position_finder, trader_agent=trader_agent), key='market')

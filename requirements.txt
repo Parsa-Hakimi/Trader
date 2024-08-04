@@ -6,3 +6,4 @@ prometheus-client
 twisted
 lyrid
 python-logging-loki
+peewee

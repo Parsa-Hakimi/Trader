@@ -31,3 +31,4 @@ class MarketHandler(Actor):
     def market_updated(self, market_repo, market_id):
         logger.info("MARKET UPDATED: %s", str(market_id))
         self.tell(self.position_finder, MarketUpdate(self.market_repo.only_data(), market_id=market_id))
+
