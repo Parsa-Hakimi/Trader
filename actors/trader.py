@@ -57,7 +57,8 @@ class TraderAgent(Actor):
 
     def check_db_initialized(self):
         if not self.db_initialized:
-            db.connect()
+            db.connect(reuse_if_open=True)
+            self.db_initialized = True
 
     @switch.message(type=UpdateOrdersAndWallet)
     def handle_update_orders_and_wallet(self, sender: Address, message: UpdateOrdersAndWallet):

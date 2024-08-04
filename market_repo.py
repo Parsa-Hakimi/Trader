@@ -37,7 +37,8 @@ class MarketRepository:
 
     def check_db_initialized(self):
         if not self.db_initialized:
-            db.connect()
+            db.connect(reuse_if_open=True)
+            self.db_initialized = True
 
     def only_data(self):
         m = MarketRepository()
@@ -151,9 +152,9 @@ class MarketRepository:
             update_date=datetime.fromisoformat(event_time),
             received_at=datetime.now(),
             best_bid_price=self.market_prices.get(market_id, {}).get('best_bid', {}).get('price', -1),
-            best_bid_amount=self.market_prices.get(market_id, {}).get('best_bid', {}).get('amount', -1),
+            best_bid_remain=self.market_prices.get(market_id, {}).get('best_bid', {}).get('remain', -1),
             best_ask_price=self.market_prices.get(market_id, {}).get('best_ask', {}).get('price', -1),
-            best_ask_amount=self.market_prices.get(market_id, {}).get('best_ask', {}).get('amount', -1)
+            best_ask_remain=self.market_prices.get(market_id, {}).get('best_ask', {}).get('remain', -1)
         )
 
         if self.market_prices.get(market_id, {}).get('best_bid') != sorted_bids[0]:
