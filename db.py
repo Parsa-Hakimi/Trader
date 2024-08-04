@@ -1,6 +1,12 @@
+import os
+
 from peewee import *
 
-db = PostgresqlDatabase('trader')
+DB_HOST = os.environ.get('DB_HOST', 'localhost:5432')
+DB_USER = os.environ.get('DB_USER', 'postgres')
+DB_PASS = os.environ.get('DB_PASS', 'postgres')
+DB_NAME = os.environ.get('DB_NAME', 'trader')
+db = PostgresqlDatabase(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}')
 
 
 class OrderSet(Model):
@@ -42,6 +48,7 @@ class OrderResult(Model):
 
     class Meta:
         database = db
+
 
 class MarketData(Model):
     market_id = IntegerField()

@@ -7,12 +7,13 @@ import websocket
 
 import metrics
 from bitpin_proxy import bitpin_proxy
+from db import db, MarketData
 from utils import MARKET_MAPPING
 
 BITPIN_WS_ADDR = 'wss://ws.bitpin.org'
 
 websocket.setdefaulttimeout(20)
-logging.basicConfig(level=logging.INFO,  format='%(asctime)s %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,12 @@ class MarketRepository:
 
         if u:
             self.update_by_order_list()
+
+        self.db_initialized = False
+
+    def check_db_initialized(self):
+        if not self.db_initialized:
+            db.connect()
 
     def only_data(self):
         m = MarketRepository()
@@ -117,11 +124,13 @@ class MarketRepository:
         pass
 
     def _on_open(self, ws):
-#         print("Connection opened")
+        #         print("Connection opened")
         self.ws.send(f'{{"method":"sub_to_market_list", "ids":[{",".join(str(i) for i in MARKET_MAPPING.values())}]}}')
 
     def handle_market_update_event(self, data):
         event_time = data.get('event_time')
+
+        self.check_db_initialized()
 
         if event_time:
             if event_time[-1] == 'Z':
@@ -135,6 +144,12 @@ class MarketRepository:
         sorted_bids = sorted(data['buy'], key=lambda order: float(order['price']), reverse=True)
         sorted_asks = sorted(data['sell'], key=lambda order: float(order['price']))
         updated = False
+
+        market_data = MarketData(market_id=market_id,
+                                 market_code=data['market']['code'],
+                                 update_date=datetime.fromisoformat(event_time),
+                                 received_at=datetime.now())
+
         if self.market_prices.get(market_id, {}).get('best_bid') != sorted_bids[0]:
             # print(f'new best bid: \n{self.market_prices.get(market_id, {}).get("best_bid")} \n{sorted_bids[0]}')
             best_bid: dict = sorted_bids[0].copy()
@@ -143,6 +158,8 @@ class MarketRepository:
             metrics.best_price.labels(market=data['market']['code'], type='bid').set(float(best_bid.get('price')))
             metrics.best_amount.labels(market=data['market']['code'], type='bid').set(
                 float(best_bid.get('remain')))
+            market_data.best_bid_price = float(best_bid.get('price'))
+            market_data.best_bid_remain = float(best_bid.get('remain'))
             updated = True
         if self.market_prices.get(market_id, {}).get('best_ask') != sorted_asks[0]:
             # print(f'new best ask: \n{self.market_prices.get(market_id, {}).get("best_ask")} \n{sorted_asks[0]}')
@@ -152,9 +169,12 @@ class MarketRepository:
             metrics.best_price.labels(market=data['market']['code'], type='ask').set(float(best_ask.get('price')))
             metrics.best_amount.labels(market=data['market']['code'], type='ask').set(
                 float(best_ask.get('remain')))
+            market_data.best_ask_price = float(best_ask.get('price'))
+            market_data.best_ask_remain = float(best_ask.get('remain'))
             updated = True
 
         if updated:
+            market_data.save()
             self._call_callbacks(market_id)
 
     def _call_callbacks(self, market_id: int):

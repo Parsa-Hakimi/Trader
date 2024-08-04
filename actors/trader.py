@@ -6,10 +6,10 @@ from datetime import datetime
 from typing import List, Dict
 
 from lyrid import Actor, use_switch, switch, Message, Address
-import sqlite3
 
 import metrics
 from bitpin_proxy import bitpin_proxy
+from db import db, Order as DBOrder, OrderSet, OrderResult
 from order import Order
 from utils import MARKET_MAPPING
 
@@ -51,45 +51,12 @@ class TraderAgent(Actor):
     def __init__(self):
         self.open_orders = []
         self.wallet = defaultdict(float)
-        self._db = None
+        self.db_initialized = False
         self.update_orders_and_wallet(initial=True)
 
-    @property
-    def db(self):
-        if self._db:
-            return self._db
-
-        self._db = sqlite3.connect('orders.db').cursor()
-        self._db.execute("CREATE TABLE IF NOT EXISTS orders ("
-                        "identifier TEXT PRIMARY KEY,"
-                        "market0 TEXT,"
-                        "market1 TEXT,"
-                        "market_code TEXT,"
-                        "side TEXT,"
-                        "amount REAL,"
-                        "price REAL,"
-                        "created_at TEXT,"
-                        "order_set_id TEXT"
-                        ");")
-        self._db.execute("CREATE TABLE IF NOT EXISTS done_orders ("
-                        "identifier TEXT PRIMARY KEY,"
-                        "market0 TEXT,"
-                        "market1 TEXT,"
-                        "market_code TEXT,"
-                        "side TEXT,"
-                        "amount1 REAL,"
-                        "amount2 REAL,"
-                        "price REAL,"
-                        "expected_gain REAL,"
-                        "expected_resource REAL,"
-                        "average_price REAL,"
-                        "gain REAL,"
-                        "resource REAL,"
-                        "exchanged1 REAL,"
-                        "exchanged2 REAL,"
-                        "created_at TEXT,"
-                        "closed_at TEXT);")
-        return self._db
+    def check_db_initialized(self):
+        if not self.db_initialized:
+            db.connect()
 
     @switch.message(type=UpdateOrdersAndWallet)
     def handle_update_orders_and_wallet(self, sender: Address, message: UpdateOrdersAndWallet):
@@ -106,27 +73,23 @@ class TraderAgent(Actor):
     def check_old_open_order(self, order: Order):
         resp = bitpin_proxy.get_my_orders(active=False, identifier=order.identifier)
         if resp and resp[0].extra["state"] == "closed":
-            params = (
-                order.identifier,
-                order.market[0],
-                order.market[1],
-                resp[0].extra['market']['code'],
-                order.side,
-                float(resp[0].extra.get("amount1") or -1),
-                float(resp[0].extra.get("amount2") or -1),
-                float(resp[0].extra.get("price") or -1),
-                float(resp[0].extra.get("expected_gain") or -1),
-                float(resp[0].extra.get("expected_resource") or -1),
-                float(resp[0].extra.get("average_price") or -1),
-                float(resp[0].extra.get("gain") or -1),
-                float(resp[0].extra.get("resource") or -1),
-                float(resp[0].extra.get("exchanged1") or -1),
-                float(resp[0].extra.get("exchanged2") or -1),
-                resp[0].extra.get("created_at") or "?",
-                resp[0].extra.get("closed_at") or "?",
+            self.check_db_initialized()
+            db_order = DBOrder.get(DBOrder.identifier == order.identifier)
+            order_result = OrderResult(
+                order=db_order,
+                amount1=float(resp[0].extra.get("amount1") or -1),
+                amount2=float(resp[0].extra.get('amount2') or -1),
+                expected_gain=float(resp[0].extra.get('expected_gain') or -1),
+                expected_resource=float(resp[0].extra.get('expected_resource') or -1),
+                average_price=float(resp[0].extra.get('average_price') or -1),
+                gain=float(resp[0].extra.get('gain') or -1),
+                resource=float(resp[0].extra.get('resource') or -1),
+                exchanged1=float(resp[0].extra.get('exchanged1') or -1),
+                exchanged2=float(resp[0].extra.get('exchanged2') or -1),
+                real_created_at=datetime.fromisoformat(resp[0].extra.get("created_at").replace('Z', '')),
+                closed_at=datetime.fromisoformat(resp[0].extra.get("created_at").replace('Z', '')),
             )
-            self.db.execute(f"INSERT INTO done_orders VALUES(" + ",".join(["?"] * len(params)) + ")", params)
-            self.db.connection.commit()
+            order_result.save()
 
     def update_orders_and_wallet(self, initial=False):
         try:
@@ -147,19 +110,21 @@ class TraderAgent(Actor):
     def place_order_set(self, order_set: List[Order]):
         logger.info('Placing orders: %s', str(order_set))
 
-        order_set_id = uuid.uuid4()
-
         orders_placed = False
         with metrics.order_placement_duration.time():
             if self.verify_order_set(order_set):
+                self.check_db_initialized()
+                db_order_set = OrderSet(base_tokens=_get_order_set_base_tokens(order_set))
+                db_order_set.save()
+
                 for order in order_set:
-                    self._place_order(order, order_set_id=str(order_set_id))
+                    self._place_order(order, order_set=db_order_set)
                 orders_placed = True
 
         if orders_placed:
             self.update_orders_and_wallet()
 
-    def _place_order(self, order: Order, order_set_id: str):
+    def _place_order(self, order: Order, order_set: OrderSet):
         logger.info('Placing order: %s', str(order))
         order.identifier = str(uuid.uuid4())
 
@@ -174,11 +139,19 @@ class TraderAgent(Actor):
         # TODO: Check order is placed
 
         self.open_orders.append(order)
-        params = (
-            order.identifier, order.market[0], order.market[1], f"{order.market[0]}_{order.market[1]}", order.side,
-            order.amount, order.price, datetime.now().isoformat(), order_set_id)
-        self.db.execute(f"INSERT INTO orders VALUES(" + ",".join(["?"] * len(params)) + ")", params)
-        self.db.connection.commit()
+        self.check_db_initialized()
+        db_order = DBOrder(
+            identifier=order.identifier,
+            market_0=order.market[0],
+            market_1=order.market[1],
+            market_code=f"{order.market[0]}_{order.market[1]}",
+            side=order.side,
+            amount=order.amount,
+            price=order.price,
+            created_at=datetime.now().isoformat(),
+            order_set=order_set,
+        )
+        db_order.save()
 
     def verify_order_set(self, order_set: List[Order]) -> bool:
         logger.info('Verifying orders: %s', str(order_set))

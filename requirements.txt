@@ -7,3 +7,4 @@ twisted
 lyrid
 python-logging-loki
 peewee
+psycopg2-binary
